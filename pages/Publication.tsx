@@ -42,8 +42,8 @@ export const Publication = () => {
         </div>
       </section>
 
-      {/* Filter & Search Bar */}
-      <section className="sticky top-[72px] md:top-[112px] z-40 bg-white border-b border-slate-200 shadow-sm">
+      {/* Filter & Search Bar - Fixed offset to handle sticky navbar height (approx 68px when scrolled) */}
+      <section className="sticky top-[68px] z-40 bg-white border-b border-slate-200 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-4">
             <div className="flex items-center gap-6 overflow-x-auto no-scrollbar pb-2 md:pb-0">
@@ -71,7 +71,7 @@ export const Publication = () => {
                 placeholder="Search publications..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full md:w-64 pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full md:w-64 pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
           </div>
@@ -86,9 +86,6 @@ export const Publication = () => {
               <div>
                 <span className="text-xs font-black text-blue-600 uppercase tracking-widest block mb-2">Public Record</span>
                 <h2 className="text-4xl font-black text-slate-900 tracking-tight">Field News & Updates</h2>
-              </div>
-              <div className="hidden md:block text-slate-400 text-xs font-bold uppercase tracking-widest">
-                {filteredNews.length} Stories Found
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
@@ -105,7 +102,7 @@ export const Publication = () => {
                       <Calendar size={14} className="text-blue-500" /> {item.date}
                     </div>
                     <h3 className="text-2xl font-black text-slate-900 mb-4 group-hover:text-blue-600 transition-colors leading-tight">{item.title}</h3>
-                    <p className="text-slate-500 text-sm leading-relaxed mb-8 flex-grow">{item.excerpt}</p>
+                    <p className="text-slate-500 text-sm leading-relaxed mb-8 flex-grow font-medium">{item.excerpt}</p>
                     <button className="flex items-center gap-3 text-slate-900 font-black text-xs uppercase tracking-widest hover:gap-5 transition-all group-hover:text-blue-600">
                       Read Full Story <ArrowRight size={18} />
                     </button>
@@ -134,28 +131,26 @@ export const Publication = () => {
                         <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${project.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700 animate-pulse'}`}>
                           {project.status === 'Completed' ? <CheckCircle size={14} /> : <Clock size={14} />} {project.status}
                         </div>
-                        <div className="flex items-center gap-2 text-slate-500 text-[10px] font-bold uppercase tracking-widest bg-slate-50 px-4 py-2 rounded-full border border-slate-100">
+                        <div className="flex items-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-widest bg-slate-50 px-4 py-2 rounded-full border border-slate-100">
                           <MapPin size={14} className="text-blue-500" /> {project.region}
                         </div>
                       </div>
-                      <h3 className="text-3xl md:text-5xl font-black text-slate-900 mb-4 group-hover:text-blue-600 transition-colors tracking-tight">{project.title}</h3>
-                      <p className="text-slate-500 leading-relaxed text-lg max-w-3xl">{project.description}</p>
+                      <h3 className="text-3xl md:text-5xl font-black text-slate-900 mb-4 group-hover:text-blue-600 transition-colors tracking-tight leading-none">{project.title}</h3>
+                      <p className="text-slate-500 leading-relaxed text-lg max-w-3xl font-medium">{project.description}</p>
                     </div>
                     <div className="lg:col-span-4 bg-slate-50 p-10 md:p-14 flex flex-col justify-center items-center text-center space-y-10 border-l border-slate-100">
                       <div className="w-full">
                         <div className="flex justify-between items-end mb-4">
-                          <div className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">Deployment Readiness</div>
-                          <div className="text-5xl font-black text-blue-600">{project.progress}%</div>
+                          <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Readiness</div>
+                          <div className="text-4xl font-black text-blue-600">{project.progress}%</div>
                         </div>
-                        <div className="h-6 w-full bg-slate-200 rounded-full overflow-hidden p-1.5 shadow-inner">
-                          <div style={{ width: `${project.progress}%` }} className={`h-full rounded-full transition-all duration-1000 ease-out shadow-lg ${project.progress === 100 ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-blue-400 to-blue-600'}`} />
+                        <div className="h-4 w-full bg-slate-200 rounded-full overflow-hidden p-1 shadow-inner">
+                          <div style={{ width: `${project.progress}%` }} className={`h-full rounded-full transition-all duration-1000 ease-out shadow-lg ${project.progress === 100 ? 'bg-green-500' : 'bg-blue-600'}`} />
                         </div>
                       </div>
-                      <div className="w-full">
-                        <Link to={`/project-report/${project.id}`} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl">
-                          <FileText size={20} /> Access Full Report
-                        </Link>
-                      </div>
+                      <Link to={`/project-report/${project.id}`} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl">
+                        <FileText size={18} /> Access Full Report
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -163,65 +158,7 @@ export const Publication = () => {
             </div>
           </section>
         )}
-
-        {/* Gallery Section */}
-        {filteredGallery.length > 0 && (
-          <section id="gallery" className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <div className="flex items-end justify-between mb-12 border-l-4 border-purple-600 pl-6">
-              <div>
-                <span className="text-xs font-black text-purple-600 uppercase tracking-widest block mb-2">Visual Testimony</span>
-                <h2 className="text-4xl font-black text-slate-900 tracking-tight">Media Gallery</h2>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {filteredGallery.map((img) => (
-                <div key={img.id} className="group relative h-80 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all cursor-pointer border border-slate-100">
-                  <img src={img.img} alt={img.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80"></div>
-                  <div className="absolute bottom-8 left-8 right-8">
-                    <span className="inline-block px-3 py-1 bg-purple-600 text-white text-[10px] font-black uppercase tracking-widest rounded-md mb-3">Field Shot</span>
-                    <h4 className="text-xl font-bold text-white leading-tight mb-2">{img.title}</h4>
-                    <p className="text-slate-300 text-xs font-medium line-clamp-2">{img.subtitle}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Empty State */}
-        {filteredNews.length === 0 && filteredProjects.length === 0 && filteredGallery.length === 0 && (
-          <div className="py-32 text-center animate-in fade-in zoom-in duration-500">
-            <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-8 text-slate-300">
-              <Filter size={48} />
-            </div>
-            <h3 className="text-3xl font-black text-slate-900 mb-4">No Intel Found</h3>
-            <p className="text-slate-500 font-medium max-w-md mx-auto">Adjust your filters or search query to explore APDFE regional communications.</p>
-            <button 
-              onClick={() => { setFilter('all'); setSearchQuery(''); }}
-              className="mt-8 px-8 py-3 bg-blue-600 text-white rounded-xl font-black text-sm uppercase tracking-widest shadow-lg hover:bg-blue-700 transition-all"
-            >
-              Reset Filters
-            </button>
-          </div>
-        )}
       </div>
-
-      {/* Subscription Footer Callout */}
-      <section className="bg-slate-900 py-32 rounded-t-[5rem] mt-32 relative overflow-hidden">
-        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <h2 className="text-4xl md:text-6xl font-black text-white mb-8 tracking-tight">Stay Connected to the Field</h2>
-          <p className="text-xl text-slate-400 font-light mb-12 leading-relaxed italic">
-            "Transparency is the cornerstone of trust. Receive regional operational digests directly in your inbox."
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input type="email" placeholder="name@organization.org" className="flex-grow px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
-            <button className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:bg-blue-700 transition-all">Subscribe</button>
-          </div>
-        </div>
-        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
-      </section>
     </div>
   );
 };

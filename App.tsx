@@ -12,6 +12,7 @@ import { Donate } from './pages/Donate';
 import { Publication } from './pages/Publication';
 import { ProjectReport } from './pages/ProjectReport';
 import { ProjectManagement } from './pages/ProjectManagement';
+import { Events } from './pages/Events';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { MockDataProvider } from './context/MockDataContext';
@@ -26,6 +27,7 @@ const App: React.FC = () => {
             <Route path="/about" element={<About />} />
             <Route path="/programs" element={<Programs />} />
             <Route path="/impact" element={<Impact />} />
+            <Route path="/events" element={<Events />} />
             <Route path="/publication" element={<Publication />} />
             <Route path="/project-report/:projectId" element={<ProjectReport />} />
             <Route path="/get-involved" element={<GetInvolved />} />

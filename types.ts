@@ -51,6 +51,17 @@ export interface Project {
   lastUpdated?: string;
 }
 
+export interface AppEvent {
+  id: string;
+  title: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  description: string;
+  type: 'Mission' | 'Webinar' | 'Fundraiser' | 'Community';
+}
+
 export interface Volunteer {
   id: string;
   firstName: string;
