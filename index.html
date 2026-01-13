@@ -7,6 +7,12 @@
     <title>A.P.D.F.E | Building Better Futures Together</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Prevents app crash if process.env is accessed before being bundled -->
+    <script>
+      if (typeof window !== 'undefined' && typeof window.process === 'undefined') {
+        window.process = { env: { API_KEY: "" } };
+      }
+    </script>
     <style>
       body {
         font-family: 'Inter', sans-serif;
@@ -43,5 +49,6 @@
 </head>
   <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
