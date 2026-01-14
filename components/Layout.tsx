@@ -1,14 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Mail, Phone, Menu, X, Facebook, Twitter, Instagram, Heart, User, Calendar } from 'lucide-react';
+import { Mail, Phone, Menu, X, Facebook, Twitter, Instagram, Heart, User, Calendar, ChevronDown } from 'lucide-react';
 import { useData } from '../context/MockDataContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const location = useLocation();
   const { currentUser } = useData();
+  const dropdownTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,19 +22,52 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'About Us', path: '/about' },
-    { name: 'Programs', path: '/programs' },
+    { 
+      name: 'About Us', 
+      path: '/about',
+      dropdown: [
+        { name: 'Who We Are', path: '/about' },
+        { name: 'Our Mission', path: '/about#mission' },
+        { name: 'Our Values', path: '/about#values' },
+        { name: 'Our Team', path: '/about#team' },
+        { name: 'History', path: '/about#history' },
+        { name: 'Where We Work', path: '/about#locations' }
+      ]
+    },
+    { 
+      name: 'Programs', 
+      path: '/programs',
+      dropdown: [
+        { name: 'Health Programs', path: '/programs#health' },
+        { name: 'Economic Empowerment', path: '/programs#empowerment' },
+        { name: 'Child Protection', path: '/programs#protection' },
+        { name: 'Environmental Protection', path: '/programs#environment' },
+        { name: 'Education Programs', path: '/programs#education' },
+        { name: 'Peace-Building', path: '/programs#peace' }
+      ]
+    },
     { name: 'Impact', path: '/impact' },
     { name: 'Publication', path: '/publication' },
     { name: 'Events', path: '/events' },
     { name: 'Get Involved', path: '/get-involved' },
   ];
 
+  const handleMouseEnter = (name: string) => {
+    if (dropdownTimer.current) clearTimeout(dropdownTimer.current);
+    setActiveDropdown(name);
+  };
+
+  const handleMouseLeave = () => {
+    dropdownTimer.current = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 150);
+  };
+
   const isActive = (path: string) => location.pathname === path;
 
   return (
     <nav className={`sticky top-0 z-50 bg-white shadow-md transition-all duration-300`}>
-      {/* Top Bar - Shrinks but stays visible as a thin strip or fades gracefully */}
+      {/* Top Bar */}
       <div className={`bg-slate-900 text-white px-6 flex justify-between items-center text-xs transition-all duration-500 ease-in-out ${isScrolled ? 'h-7 opacity-80' : 'h-10 opacity-100'}`}>
         <div className="flex gap-4">
           <a href="mailto:info@apdfe.org" className="flex items-center gap-2 hover:text-green-400 transition-colors">
@@ -74,13 +109,36 @@ const Navbar = () => {
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-7">
           {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`text-[11px] uppercase tracking-widest font-black transition-colors hover:text-blue-600 ${isActive(link.path) ? 'text-blue-600' : 'text-slate-500'}`}
+            <div 
+              key={link.path} 
+              className="relative group h-full flex items-center"
+              onMouseEnter={() => link.dropdown && handleMouseEnter(link.name)}
+              onMouseLeave={() => link.dropdown && handleMouseLeave()}
             >
-              {link.name}
-            </Link>
+              <Link
+                to={link.path}
+                className={`text-[11px] uppercase tracking-widest font-black transition-colors hover:text-blue-600 flex items-center gap-1 ${isActive(link.path) ? 'text-blue-600' : 'text-slate-500'}`}
+              >
+                {link.name}
+                {link.dropdown && <ChevronDown size={10} className={`transition-transform duration-200 ${activeDropdown === link.name ? 'rotate-180' : ''}`} />}
+              </Link>
+
+              {/* Dropdown Menu */}
+              {link.dropdown && activeDropdown === link.name && (
+                <div className="absolute top-full left-0 mt-0 w-64 bg-white shadow-2xl rounded-b-xl border-t-2 border-blue-600 py-4 animate-in fade-in slide-in-from-top-2 duration-200 z-[60]">
+                  {link.dropdown.map((subItem) => (
+                    <Link
+                      key={subItem.name}
+                      to={subItem.path}
+                      className="block px-6 py-3 text-[10px] uppercase font-bold tracking-wider text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                      onClick={() => setActiveDropdown(null)}
+                    >
+                      {subItem.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
           <Link to="/donate" className={`bg-green-500 hover:bg-green-600 text-white rounded-full font-black shadow-lg transition-all active:scale-95 flex items-center gap-2 ${isScrolled ? 'px-4 py-1.5 text-[10px]' : 'px-6 py-2.5 text-xs'}`}>
             <Heart size={14} /> DONATE
@@ -95,16 +153,31 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-white border-t p-6 shadow-2xl flex flex-col gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="md:hidden absolute top-full left-0 w-full bg-white border-t p-6 shadow-2xl flex flex-col gap-4 animate-in fade-in slide-in-from-top-4 duration-300 max-h-[80vh] overflow-y-auto">
           {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              onClick={() => setIsOpen(false)}
-              className={`text-sm font-black uppercase tracking-widest py-3 border-b border-slate-50 ${isActive(link.path) ? 'text-blue-600' : 'text-slate-600'}`}
-            >
-              {link.name}
-            </Link>
+            <div key={link.path} className="flex flex-col">
+              <Link
+                to={link.path}
+                onClick={() => !link.dropdown && setIsOpen(false)}
+                className={`text-sm font-black uppercase tracking-widest py-3 border-b border-slate-50 flex justify-between items-center ${isActive(link.path) ? 'text-blue-600' : 'text-slate-600'}`}
+              >
+                {link.name}
+              </Link>
+              {link.dropdown && (
+                <div className="pl-4 flex flex-col bg-slate-50/50">
+                  {link.dropdown.map((subItem) => (
+                    <Link
+                      key={subItem.name}
+                      to={subItem.path}
+                      onClick={() => setIsOpen(false)}
+                      className="text-[10px] uppercase font-bold tracking-widest py-3 border-b border-slate-100 text-slate-500 hover:text-blue-600"
+                    >
+                      {subItem.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
           <Link to="/donate" onClick={() => setIsOpen(false)} className="bg-green-500 text-white px-6 py-4 rounded-xl text-center font-black uppercase tracking-widest">
             Donate Now

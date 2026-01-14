@@ -75,16 +75,12 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [
-        { data: hData },
-        { data: nData },
-        { data: pData },
-        { data: dData },
-        { data: eData },
-        { data: vData },
-        { data: gData },
-        { data: evData }
-      ] = await Promise.all([
+      // Set a timeout to prevent infinite loading if Supabase is slow or failing
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database timeout')), 5000)
+      );
+
+      const fetchPromise = Promise.all([
         supabase.from('helpers').select('*'),
         supabase.from('news').select('*'),
         supabase.from('projects').select('*'),
@@ -94,6 +90,18 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         supabase.from('gallery').select('*'),
         supabase.from('events').select('*')
       ]);
+
+      const results: any = await Promise.race([fetchPromise, timeoutPromise]);
+      const [
+        { data: hData },
+        { data: nData },
+        { data: pData },
+        { data: dData },
+        { data: eData },
+        { data: vData },
+        { data: gData },
+        { data: evData }
+      ] = results;
 
       if (hData) {
         setHelpers(hData.map((h: any) => ({
@@ -148,7 +156,7 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
 
     } catch (err) {
-      console.error("Critical database error.");
+      console.error("Database error or timeout, falling back to cached/empty data.");
       setIsDbHealthy(false);
     } finally {
       setIsLoading(false);
