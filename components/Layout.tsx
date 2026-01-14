@@ -46,10 +46,28 @@ const Navbar = () => {
         { name: 'Peace-Building', path: '/programs#peace' }
       ]
     },
-    { name: 'Impact', path: '/impact' },
-    { name: 'Publication', path: '/publication' },
-    { name: 'Events', path: '/events' },
+    { 
+      name: 'Impact', 
+      path: '/impact',
+      dropdown: [
+        { name: 'Our Reach', path: '/impact' },
+        { name: 'Success Stories', path: '/impact#stories' },
+        { name: 'Annual Reports', path: '/impact#reports' },
+        { name: 'Beneficiary Growth', path: '/impact#growth' }
+      ]
+    },
+    { 
+      name: 'Publication', 
+      path: '/publication',
+      dropdown: [
+        { name: 'Latest Intelligence', path: '/publication' },
+        { name: 'Research Papers', path: '/publication#research' },
+        { name: 'Field Events', path: '/events' },
+        { name: 'Newsletter', path: '/publication#newsletter' }
+      ]
+    },
     { name: 'Get Involved', path: '/get-involved' },
+    { name: 'Contact', path: '/contact' },
   ];
 
   const handleMouseEnter = (name: string) => {
@@ -66,125 +84,135 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className={`sticky top-0 z-50 bg-white shadow-md transition-all duration-300`}>
-      {/* Top Bar */}
-      <div className={`bg-slate-900 text-white px-6 flex justify-between items-center text-xs transition-all duration-500 ease-in-out ${isScrolled ? 'h-7 opacity-80' : 'h-10 opacity-100'}`}>
-        <div className="flex gap-4">
-          <a href="mailto:info@apdfe.org" className="flex items-center gap-2 hover:text-green-400 transition-colors">
-            <Mail size={12} /> <span className={isScrolled ? 'hidden sm:inline' : ''}>info@apdfe.org</span>
-          </a>
-          <a href="tel:+250788123456" className="flex items-center gap-2 hover:text-green-400 transition-colors">
-            <Phone size={12} /> <span className={isScrolled ? 'hidden sm:inline' : ''}>+250 788 123 456</span>
-          </a>
-        </div>
-        <div className="flex gap-4 items-center">
-          <Facebook size={14} className="cursor-pointer hover:text-blue-400" />
-          <Instagram size={14} className="cursor-pointer hover:text-pink-400" />
-          {currentUser ? (
-             <Link to="/dashboard" className="flex items-center gap-2 text-blue-400 font-black hover:text-white transition-colors ml-4 uppercase tracking-tighter">
-               <User size={12} /> Dashboard
-             </Link>
-          ) : (
-            <Link to="/login" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors ml-4 uppercase tracking-tighter">
-              <User size={12} /> Staff Access
-            </Link>
-          )}
-        </div>
-      </div>
-
-      <div className={`max-w-7xl mx-auto px-4 flex justify-between items-center transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
-        <Link to="/" className="flex items-center gap-3">
-          <img 
-            src="https://raw.githubusercontent.com/stackblitz/stackblitz-images/main/apdfe-logo.png" 
-            alt="A.P.D.F.E Logo" 
-            className={`w-auto object-contain transition-all duration-300 ${isScrolled ? 'h-7' : 'h-12'}`} 
-            onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/48x48?text=AP'; }} 
-          />
-          <div className="flex flex-col">
-            <span className={`font-black tracking-tight text-blue-900 leading-none transition-all duration-300 ${isScrolled ? 'text-lg' : 'text-xl'}`}>A.P.D.F.E</span>
-            {!isScrolled && <span className="text-[9px] uppercase font-black text-green-600 tracking-widest mt-0.5">Building Better Futures</span>}
-          </div>
-        </Link>
-
-        {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-7">
-          {navLinks.map((link) => (
-            <div 
-              key={link.path} 
-              className="relative group h-full flex items-center"
-              onMouseEnter={() => link.dropdown && handleMouseEnter(link.name)}
-              onMouseLeave={() => link.dropdown && handleMouseLeave()}
-            >
-              <Link
-                to={link.path}
-                className={`text-[11px] uppercase tracking-widest font-black transition-colors hover:text-blue-600 flex items-center gap-1 ${isActive(link.path) ? 'text-blue-600' : 'text-slate-500'}`}
-              >
-                {link.name}
-                {link.dropdown && <ChevronDown size={10} className={`transition-transform duration-200 ${activeDropdown === link.name ? 'rotate-180' : ''}`} />}
-              </Link>
-
-              {/* Dropdown Menu */}
-              {link.dropdown && activeDropdown === link.name && (
-                <div className="absolute top-full left-0 mt-0 w-64 bg-white shadow-2xl rounded-b-xl border-t-2 border-blue-600 py-4 animate-in fade-in slide-in-from-top-2 duration-200 z-[60]">
-                  {link.dropdown.map((subItem) => (
-                    <Link
-                      key={subItem.name}
-                      to={subItem.path}
-                      className="block px-6 py-3 text-[10px] uppercase font-bold tracking-wider text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors"
-                      onClick={() => setActiveDropdown(null)}
-                    >
-                      {subItem.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-          <Link to="/donate" className={`bg-green-500 hover:bg-green-600 text-white rounded-full font-black shadow-lg transition-all active:scale-95 flex items-center gap-2 ${isScrolled ? 'px-4 py-1.5 text-[10px]' : 'px-6 py-2.5 text-xs'}`}>
-            <Heart size={14} /> DONATE
-          </Link>
-        </div>
-
-        {/* Mobile Menu Toggle */}
-        <button className="md:hidden p-2 text-slate-900" onClick={() => setIsOpen(!isOpen)}>
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-white border-t p-6 shadow-2xl flex flex-col gap-4 animate-in fade-in slide-in-from-top-4 duration-300 max-h-[80vh] overflow-y-auto">
-          {navLinks.map((link) => (
-            <div key={link.path} className="flex flex-col">
-              <Link
-                to={link.path}
-                onClick={() => !link.dropdown && setIsOpen(false)}
-                className={`text-sm font-black uppercase tracking-widest py-3 border-b border-slate-50 flex justify-between items-center ${isActive(link.path) ? 'text-blue-600' : 'text-slate-600'}`}
-              >
-                {link.name}
-              </Link>
-              {link.dropdown && (
-                <div className="pl-4 flex flex-col bg-slate-50/50">
-                  {link.dropdown.map((subItem) => (
-                    <Link
-                      key={subItem.name}
-                      to={subItem.path}
-                      onClick={() => setIsOpen(false)}
-                      className="text-[10px] uppercase font-bold tracking-widest py-3 border-b border-slate-100 text-slate-500 hover:text-blue-600"
-                    >
-                      {subItem.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-          <Link to="/donate" onClick={() => setIsOpen(false)} className="bg-green-500 text-white px-6 py-4 rounded-xl text-center font-black uppercase tracking-widest">
-            Donate Now
-          </Link>
-        </div>
+    <>
+      {/* Background Overlay */}
+      {activeDropdown && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 animate-in fade-in"
+          onMouseEnter={handleMouseLeave}
+        />
       )}
-    </nav>
+      
+      <nav className={`sticky top-0 z-50 bg-white shadow-md transition-all duration-300`}>
+        {/* Top Bar */}
+        <div className={`bg-slate-900 text-white px-6 flex justify-between items-center text-xs transition-all duration-500 ease-in-out ${isScrolled ? 'h-7 opacity-80' : 'h-10 opacity-100'}`}>
+          <div className="flex gap-4">
+            <a href="mailto:info@apdfe.org" className="flex items-center gap-2 hover:text-green-400 transition-colors">
+              <Mail size={12} /> <span className={isScrolled ? 'hidden sm:inline' : ''}>info@apdfe.org</span>
+            </a>
+            <a href="tel:+250788123456" className="flex items-center gap-2 hover:text-green-400 transition-colors">
+              <Phone size={12} /> <span className={isScrolled ? 'hidden sm:inline' : ''}>+250 788 123 456</span>
+            </a>
+          </div>
+          <div className="flex gap-4 items-center">
+            <Facebook size={14} className="cursor-pointer hover:text-blue-400" />
+            <Instagram size={14} className="cursor-pointer hover:text-pink-400" />
+            {currentUser ? (
+               <Link to="/dashboard" className="flex items-center gap-2 text-blue-400 font-black hover:text-white transition-colors ml-4 uppercase tracking-tighter">
+                 <User size={12} /> Dashboard
+               </Link>
+            ) : (
+              <Link to="/login" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors ml-4 uppercase tracking-tighter">
+                <User size={12} /> Staff Access
+              </Link>
+            )}
+          </div>
+        </div>
+
+        <div className={`max-w-7xl mx-auto px-4 flex justify-between items-center transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
+          <Link to="/" className="flex items-center gap-3">
+            <img 
+              src="https://raw.githubusercontent.com/stackblitz/stackblitz-images/main/apdfe-logo.png" 
+              alt="A.P.D.F.E Logo" 
+              className={`w-auto object-contain transition-all duration-300 ${isScrolled ? 'h-7' : 'h-12'}`} 
+              onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/48x48?text=AP'; }} 
+            />
+            <div className="flex flex-col">
+              <span className={`font-black tracking-tight text-blue-900 leading-none transition-all duration-300 ${isScrolled ? 'text-lg' : 'text-xl'}`}>A.P.D.F.E</span>
+              {!isScrolled && <span className="text-[9px] uppercase font-black text-green-600 tracking-widest mt-0.5">Building Better Futures</span>}
+            </div>
+          </Link>
+
+          {/* Desktop Links */}
+          <div className="hidden md:flex items-center gap-7">
+            {navLinks.map((link) => (
+              <div 
+                key={link.path + link.name} 
+                className="relative group h-full flex items-center"
+                onMouseEnter={() => link.dropdown && handleMouseEnter(link.name)}
+                onMouseLeave={() => link.dropdown && handleMouseLeave()}
+              >
+                <Link
+                  to={link.path}
+                  className={`text-[11px] uppercase tracking-widest font-black transition-colors hover:text-blue-600 flex items-center gap-1 ${isActive(link.path) ? 'text-blue-600' : 'text-slate-500'}`}
+                >
+                  {link.name}
+                  {link.dropdown && <ChevronDown size={10} className={`transition-transform duration-200 ${activeDropdown === link.name ? 'rotate-180' : ''}`} />}
+                </Link>
+
+                {/* Dropdown Menu */}
+                {link.dropdown && activeDropdown === link.name && (
+                  <div className="absolute top-full left-0 mt-0 w-64 bg-white shadow-2xl rounded-b-xl border-t-2 border-blue-600 py-4 animate-in fade-in slide-in-from-top-2 duration-200 z-[60]">
+                    {link.dropdown.map((subItem) => (
+                      <Link
+                        key={subItem.name}
+                        to={subItem.path}
+                        className="block px-6 py-3 text-[10px] uppercase font-bold tracking-wider text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                        onClick={() => setActiveDropdown(null)}
+                      >
+                        {subItem.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+            <Link to="/donate" className={`bg-green-500 hover:bg-green-600 text-white rounded-full font-black shadow-lg transition-all active:scale-95 flex items-center gap-2 ${isScrolled ? 'px-4 py-1.5 text-[10px]' : 'px-6 py-2.5 text-xs'}`}>
+              <Heart size={14} /> DONATE
+            </Link>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button className="md:hidden p-2 text-slate-900" onClick={() => setIsOpen(!isOpen)}>
+            {isOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {isOpen && (
+          <div className="md:hidden absolute top-full left-0 w-full bg-white border-t p-6 shadow-2xl flex flex-col gap-4 animate-in fade-in slide-in-from-top-4 duration-300 max-h-[80vh] overflow-y-auto">
+            {navLinks.map((link) => (
+              <div key={link.path + link.name} className="flex flex-col">
+                <Link
+                  to={link.path}
+                  onClick={() => !link.dropdown && setIsOpen(false)}
+                  className={`text-sm font-black uppercase tracking-widest py-3 border-b border-slate-50 flex justify-between items-center ${isActive(link.path) ? 'text-blue-600' : 'text-slate-600'}`}
+                >
+                  {link.name}
+                </Link>
+                {link.dropdown && (
+                  <div className="pl-4 flex flex-col bg-slate-50/50">
+                    {link.dropdown.map((subItem) => (
+                      <Link
+                        key={subItem.name}
+                        to={subItem.path}
+                        onClick={() => setIsOpen(false)}
+                        className="text-[10px] uppercase font-bold tracking-widest py-3 border-b border-slate-100 text-slate-500 hover:text-blue-600"
+                      >
+                        {subItem.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+            <Link to="/donate" onClick={() => setIsOpen(false)} className="bg-green-500 text-white px-6 py-4 rounded-xl text-center font-black uppercase tracking-widest">
+              Donate Now
+            </Link>
+          </div>
+        )}
+      </nav>
+    </>
   );
 };
 
