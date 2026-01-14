@@ -144,20 +144,20 @@ const Navbar = () => {
               >
                 <Link
                   to={link.path}
-                  className={`text-[11px] uppercase tracking-widest font-black transition-colors hover:text-blue-600 flex items-center gap-1 ${isActive(link.path) ? 'text-blue-600' : 'text-slate-500'}`}
+                  className={`text-[11px] uppercase tracking-widest font-black transition-all duration-300 ease-in-out hover:text-blue-600 flex items-center gap-1 hover:scale-105 transform ${isActive(link.path) ? 'text-blue-600' : 'text-slate-500'}`}
                 >
                   {link.name}
-                  {link.dropdown && <ChevronDown size={10} className={`transition-transform duration-200 ${activeDropdown === link.name ? 'rotate-180' : ''}`} />}
+                  {link.dropdown && <ChevronDown size={10} className={`transition-transform duration-300 ease-in-out ${activeDropdown === link.name ? 'rotate-180' : ''}`} />}
                 </Link>
 
                 {/* Dropdown Menu */}
                 {link.dropdown && activeDropdown === link.name && (
-                  <div className="absolute top-full left-0 mt-0 w-64 bg-white shadow-2xl rounded-b-xl border-t-2 border-blue-600 py-4 animate-in fade-in slide-in-from-top-2 duration-200 z-[60]">
+                  <div className="absolute top-full left-0 mt-0 w-64 bg-white shadow-2xl rounded-b-xl border-t-2 border-blue-600 py-4 animate-in fade-in slide-in-from-top-2 duration-300 ease-in-out z-[60]">
                     {link.dropdown.map((subItem) => (
                       <Link
                         key={subItem.name}
                         to={subItem.path}
-                        className="block px-6 py-3 text-[10px] uppercase font-bold tracking-wider text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                        className="block px-6 py-3 text-[10px] uppercase font-bold tracking-wider text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-all duration-300 ease-in-out hover:pl-8"
                         onClick={() => setActiveDropdown(null)}
                       >
                         {subItem.name}
