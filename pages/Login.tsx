@@ -65,6 +65,9 @@ export const Login = () => {
 
       const emailBody = response.text || `Security Alert: Your access code is ${code}.`;
 
+      // Log OTP for testing in environment
+      console.log(`[AUTH] Generated OTP for ${user.email}: ${code}`);
+
       // Simulating "sending" to actual email via a visible System Notification
       setTimeout(() => {
         const newEmail = {

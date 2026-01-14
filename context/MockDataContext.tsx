@@ -190,6 +190,11 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [fetchData]);
 
   const login = (user: User) => {
+    // Basic verification of role and status
+    if (!user.isValidated) {
+      console.error("Login failed: User not validated.");
+      return;
+    }
     setCurrentUser(user);
     localStorage.setItem('APDFE_SESSION', JSON.stringify(user));
   };
