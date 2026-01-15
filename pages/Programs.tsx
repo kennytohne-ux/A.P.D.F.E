@@ -1,54 +1,67 @@
-
 import React from 'react';
 import { PROGRAMS } from '../constants';
-import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Heart, Users, Shield, Leaf, GraduationCap, Scale } from 'lucide-react';
+
+const PROGRAM_ICONS = {
+  health: <Heart size={48} className="text-red-500" />,
+  empowerment: <Users size={48} className="text-blue-500" />,
+  protection: <Shield size={48} className="text-amber-500" />,
+  environment: <Leaf size={48} className="text-green-500" />,
+  education: <GraduationCap size={48} className="text-indigo-500" />,
+  peace: <Scale size={48} className="text-slate-500" />,
+};
+
+const PROGRAM_IDS = ['health', 'empowerment', 'protection', 'environment', 'education', 'peace'];
 
 export const Programs = () => {
   return (
-    <div className="animate-in fade-in duration-700">
+    <div className="animate-in fade-in duration-700 bg-slate-50 min-h-screen">
       <section className="bg-slate-900 py-24 text-white text-center">
         <div className="max-w-7xl mx-auto px-4">
-          <h1 className="text-5xl font-bold mb-6">Our Programs</h1>
-          <p className="text-xl text-slate-400 max-w-3xl mx-auto">
-            Comprehensive initiatives designed to create lasting change and empower communities across Central Africa.
+          <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">Our Programs</h1>
+          <p className="text-xl text-slate-400 max-w-3xl mx-auto font-light leading-relaxed">
+            Holistic, survivor-led interventions across Central Africa.
           </p>
         </div>
       </section>
 
       <section className="py-24 max-w-7xl mx-auto px-4">
-        <div className="mb-20">
-          <h2 className="text-3xl font-bold text-slate-900 mb-6">Transforming Lives Through Action</h2>
-          <p className="text-slate-600 leading-relaxed max-w-4xl">
-            APDFE operates across Central African Republic, Democratic Republic of Congo (Eastern DRC), Congo-Brazzaville, and Cameroon with core program areas addressing the most critical needs in our communities.
-          </p>
+        <div className="mb-20 text-center">
+          <h2 className="text-4xl font-black text-slate-900 mb-6 tracking-tight uppercase">Strategic Pillars</h2>
+          <div className="h-2 w-24 bg-blue-600 mx-auto rounded-full"></div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {PROGRAMS.map((program) => (
-            <div key={program.id} className="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all flex flex-col group">
-              <div className="h-64 relative overflow-hidden">
-                <img src={program.image} alt={program.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                <div className="absolute bottom-6 left-6">
-                  <h3 className="text-2xl font-bold text-white uppercase tracking-tight">{program.title}</h3>
+        <div className="space-y-32">
+          {PROGRAMS.map((program, idx) => (
+            <div key={program.id} id={PROGRAM_IDS[idx]} className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center group">
+              <div className={`${idx % 2 === 1 ? 'lg:order-2' : ''}`}>
+                <div className="rounded-[4rem] overflow-hidden shadow-2xl h-[500px] relative">
+                  <img src={program.image} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
+                  <div className="absolute bottom-10 left-10 flex items-center gap-4">
+                    <div className="p-4 bg-white/20 backdrop-blur-md border border-white/20 rounded-3xl">
+                      {PROGRAM_ICONS[PROGRAM_IDS[idx] as keyof typeof PROGRAM_ICONS]}
+                    </div>
+                    <h3 className="text-3xl font-black text-white uppercase tracking-tight">{program.title}</h3>
+                  </div>
                 </div>
               </div>
-              <div className="p-8 flex-grow">
-                <p className="text-slate-500 text-sm leading-relaxed mb-8">
+              <div className="space-y-8">
+                <div className="inline-block px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest">Program Area {idx + 1}</div>
+                <h3 className="text-4xl font-black text-slate-900 tracking-tight leading-none">{program.title}</h3>
+                <p className="text-slate-500 text-lg leading-relaxed font-medium">
                   {program.description}
                 </p>
-                <div className="space-y-3 mb-8">
-                  {program.details.map((detail, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-sm font-semibold text-slate-800">
-                      <CheckCircle2 size={16} className="text-green-500 flex-shrink-0" />
-                      {detail}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {program.details.map((detail, dIdx) => (
+                    <div key={dIdx} className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm group-hover:shadow-md transition-all">
+                      <CheckCircle2 size={18} className="text-green-500 flex-shrink-0" />
+                      <span className="text-sm font-bold text-slate-700">{detail}</span>
                     </div>
                   ))}
                 </div>
-              </div>
-              <div className="px-8 pb-8">
-                <button className="w-full py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl font-bold hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2">
-                  Learn More <ArrowRight size={16} />
+                <button className="flex items-center gap-3 text-blue-600 font-black text-sm uppercase tracking-widest hover:gap-5 transition-all">
+                  Access Operational Reports <ArrowRight size={20} />
                 </button>
               </div>
             </div>
@@ -57,25 +70,20 @@ export const Programs = () => {
       </section>
 
       {/* Impact summary section */}
-      <section className="bg-blue-900 py-24 text-white">
+      <section className="bg-slate-900 py-24 text-white rounded-t-[5rem]">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
-            <div>
-              <div className="text-4xl md:text-5xl font-black mb-2">50,000+</div>
-              <div className="text-xs uppercase tracking-widest text-blue-300 font-bold">Lives Impacted</div>
-            </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-black mb-2">4</div>
-              <div className="text-xs uppercase tracking-widest text-blue-300 font-bold">Countries</div>
-            </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-black mb-2">65%</div>
-              <div className="text-xs uppercase tracking-widest text-blue-300 font-bold">Women Reached</div>
-            </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-black mb-2">120+</div>
-              <div className="text-xs uppercase tracking-widest text-blue-300 font-bold">Communities</div>
-            </div>
+            {[
+              { val: "50,000+", lab: "Lives Impacted" },
+              { val: "4", lab: "Countries" },
+              { val: "65%", lab: "Women Reached" },
+              { val: "120+", lab: "Communities" }
+            ].map((stat, i) => (
+              <div key={i}>
+                <div className="text-4xl md:text-5xl font-black mb-2 tracking-tighter text-blue-500">{stat.val}</div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black">{stat.lab}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

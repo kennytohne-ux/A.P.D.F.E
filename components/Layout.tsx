@@ -50,20 +50,19 @@ const Navbar = () => {
       name: 'Impact', 
       path: '/impact',
       dropdown: [
-        { name: 'Our Reach', path: '/impact' },
         { name: 'Success Stories', path: '/impact#stories' },
+        { name: 'Statistics', path: '/impact#statistics' },
         { name: 'Annual Reports', path: '/impact#reports' },
-        { name: 'Beneficiary Growth', path: '/impact#growth' }
+        { name: 'Photo Gallery', path: '/impact#gallery' }
       ]
     },
     { 
       name: 'Publication', 
       path: '/publication',
       dropdown: [
-        { name: 'Latest Intelligence', path: '/publication' },
-        { name: 'Research Papers', path: '/publication#research' },
-        { name: 'Field Events', path: '/events' },
-        { name: 'Newsletter', path: '/publication#newsletter' }
+        { name: 'Field News', path: '/publication#news' },
+        { name: 'Images', path: '/publication#images' },
+        { name: 'Ongoing Projects', path: '/publication#projects' }
       ]
     },
     { name: 'Get Involved', path: '/get-involved' },
