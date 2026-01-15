@@ -152,12 +152,12 @@ const Navbar = () => {
 
                 {/* Dropdown Menu */}
                 {link.dropdown && activeDropdown === link.name && (
-                  <div className="absolute top-full left-0 mt-0 w-64 bg-white shadow-2xl rounded-b-xl border-t-2 border-blue-600 py-4 animate-in fade-in slide-in-from-top-2 duration-300 ease-in-out z-[60]">
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 w-64 bg-white shadow-2xl rounded-b-xl border-t-2 border-blue-600 py-4 animate-in fade-in slide-in-from-top-2 duration-300 ease-in-out z-[60]">
                     {link.dropdown.map((subItem) => (
                       <Link
                         key={subItem.name}
                         to={subItem.path}
-                        className="block px-6 py-3 text-[10px] uppercase font-bold tracking-wider text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-all duration-300 ease-in-out hover:pl-8"
+                        className="block px-6 py-3 text-[10px] uppercase font-bold tracking-wider text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-all duration-300 ease-in-out text-center"
                         onClick={() => setActiveDropdown(null)}
                       >
                         {subItem.name}
