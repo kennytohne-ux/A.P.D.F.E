@@ -151,12 +151,13 @@ const Navbar = () => {
 
                 {/* Dropdown Menu */}
                 {link.dropdown && activeDropdown === link.name && (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 w-64 bg-white shadow-2xl rounded-b-xl border-t-2 border-blue-600 py-4 animate-in fade-in slide-in-from-top-2 duration-300 ease-in-out z-[60]">
+                  <div className="absolute top-[calc(100%+15px)] left-1/2 -translate-x-1/2 w-64 bg-white shadow-2xl rounded-2xl border-t-4 border-blue-600 py-4 animate-in fade-in slide-in-from-top-4 duration-300 ease-out z-[60]">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-4 h-4 bg-blue-600 rotate-45"></div>
                     {link.dropdown.map((subItem) => (
                       <Link
                         key={subItem.name}
                         to={subItem.path}
-                        className="block px-6 py-3 text-[10px] uppercase font-bold tracking-wider text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-all duration-300 ease-in-out text-center"
+                        className="block px-6 py-3 text-[10px] uppercase font-black tracking-[0.15em] text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-all duration-300 text-center relative z-10"
                         onClick={() => setActiveDropdown(null)}
                       >
                         {subItem.name}
@@ -282,8 +283,18 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const isDashboard = pathname.startsWith('/dashboard');
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+    if (location.hash) {
+      const id = location.hash.substring(1);
+      const element = document.getElementById(id);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [location]);
 
   return (
     <div className="flex flex-col min-h-screen">

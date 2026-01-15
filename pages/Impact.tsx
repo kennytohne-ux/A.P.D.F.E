@@ -155,15 +155,24 @@ export const Impact = () => {
           <p className="mt-4 text-slate-500 font-bold uppercase tracking-widest text-[10px]">Visual records of our field operations</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} className="aspect-square rounded-3xl overflow-hidden group relative">
+          {[
+            "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=600&h=600&fit=crop",
+            "https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=600&h=600&fit=crop",
+            "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?q=80&w=600&h=600&fit=crop",
+            "https://images.unsplash.com/photo-1524069290683-0457abfe42c3?q=80&w=600&h=600&fit=crop",
+            "https://images.unsplash.com/photo-1542810634-71277d95dcbb?q=80&w=600&h=600&fit=crop",
+            "https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=600&h=600&fit=crop",
+            "https://images.unsplash.com/photo-1504159506876-f8338247a14a?q=80&w=600&h=600&fit=crop",
+            "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?q=80&w=600&h=600&fit=crop"
+          ].map((url, i) => (
+            <div key={i} className="aspect-square rounded-3xl overflow-hidden group relative border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500">
               <img 
-                src={`https://images.unsplash.com/photo-${1500000000000 + i * 100000}?q=80&w=400&h=400&fit=crop`} 
+                src={url} 
                 alt="Field Work" 
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
               />
-              <div className="absolute inset-0 bg-blue-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <ImageIcon size={32} className="text-white" />
+              <div className="absolute inset-0 bg-blue-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                <ImageIcon size={32} className="text-white transform scale-50 group-hover:scale-100 transition-transform duration-300" />
               </div>
             </div>
           ))}
