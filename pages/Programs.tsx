@@ -1,4 +1,4 @@
-import React from 'react';
+import { Link } from 'react-router-dom';
 import { PROGRAMS } from '../constants';
 import { CheckCircle2, ArrowRight, Heart, Users, Shield, Leaf, GraduationCap, Scale } from 'lucide-react';
 
@@ -60,9 +60,12 @@ export const Programs = () => {
                     </div>
                   ))}
                 </div>
-                <button className="flex items-center gap-3 text-blue-600 font-black text-sm uppercase tracking-widest hover:gap-5 transition-all">
-                  Access Operational Reports <ArrowRight size={20} />
-                </button>
+                <Link 
+                  to={`/programs/${program.id}`}
+                  className="flex items-center gap-3 text-blue-600 font-black text-sm uppercase tracking-widest hover:gap-5 transition-all"
+                >
+                  Read More <ArrowRight size={20} />
+                </Link>
               </div>
             </div>
           ))}
