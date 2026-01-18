@@ -10,6 +10,7 @@ import { Impact } from './pages/Impact';
 import { GetInvolved } from './pages/GetInvolved';
 import { Contact } from './pages/Contact';
 import { Donate } from './pages/Donate';
+import { ThankYou } from './pages/ThankYou';
 import { Publication } from './pages/Publication';
 import { ProjectReport } from './pages/ProjectReport';
 import { ProjectManagement } from './pages/ProjectManagement';
@@ -35,6 +36,7 @@ const App: React.FC = () => {
             <Route path="/get-involved" element={<GetInvolved />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/donate" element={<Donate />} />
+            <Route path="/thank-you" element={<ThankYou />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/project/:projectId" element={<ProjectManagement />} />
