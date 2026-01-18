@@ -288,7 +288,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       const element = document.getElementById(id);
       if (element) {
         setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth' });
+          const navbarHeight = 100; // Approximate height of the sticky navbar
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
         }, 100);
       }
     } else {
