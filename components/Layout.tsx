@@ -279,16 +279,17 @@ const Footer = () => {
 };
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { pathname } = useLocation();
-  const isDashboard = pathname.startsWith('/dashboard');
+  const location = useLocation();
+  const isDashboard = location.pathname.startsWith('/dashboard');
 
   useEffect(() => {
     if (location.hash) {
       const id = location.hash.substring(1);
-      const element = document.getElementById(id);
-      if (element) {
-        setTimeout(() => {
-          const navbarHeight = 100; // Approximate height of the sticky navbar
+      // Small delay to ensure the DOM has rendered the new page content
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          const navbarHeight = 100;
           const elementPosition = element.getBoundingClientRect().top;
           const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
 
@@ -296,12 +297,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             top: offsetPosition,
             behavior: 'smooth'
           });
-        }, 100);
-      }
+        }
+      }, 200);
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [location]);
+  }, [location.pathname, location.hash]);
 
   return (
     <div className="flex flex-col min-h-screen animate-in fade-in duration-1000">

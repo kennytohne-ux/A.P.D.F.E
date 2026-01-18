@@ -16,7 +16,7 @@ const PROGRAM_IDS = ['health', 'empowerment', 'protection', 'environment', 'educ
 export const Programs = () => {
   return (
     <div className="animate-in fade-in duration-700 bg-slate-50 min-h-screen">
-      <section className="bg-slate-900 py-24 text-white text-center">
+      <section id="programs-hero" className="bg-slate-900 py-24 text-white text-center">
         <div className="max-w-7xl mx-auto px-4">
           <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">Our Programs</h1>
           <p className="text-xl text-slate-400 max-w-3xl mx-auto font-light leading-relaxed">
