@@ -157,7 +157,7 @@ export const GetInvolved = () => {
                     <label className="text-xs font-black uppercase text-slate-500 ml-1 tracking-widest">Tell us about yourself</label>
                     <textarea rows={4} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none font-medium" placeholder="Share your motivation..." value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})}></textarea>
                   </div>
-                  <button type="submit" className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+                  <button type="submit" className="w-full py-5 bg-blue-600 hover:bg-blue-700 hover:scale-[1.02] active:scale-95 text-white rounded-2xl font-black shadow-xl transition-all duration-300 flex items-center justify-center gap-3">
                     <Sparkles size={20} /> Submit Application
                   </button>
                 </form>

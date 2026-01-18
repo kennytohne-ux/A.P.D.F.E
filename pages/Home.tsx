@@ -74,13 +74,13 @@ export const Home = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 to="/donate" 
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-full text-sm font-bold shadow-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 hover:scale-105 active:scale-95 rounded-full text-sm font-bold shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
               >
                 Make a Donation <ChevronRight size={16} />
               </Link>
               <Link 
                 to="/about" 
-                className="px-6 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95"
+                className="px-6 py-2.5 bg-white/10 hover:bg-white/20 hover:scale-105 active:scale-95 backdrop-blur-md border border-white/30 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2"
               >
                 Learn More
               </Link>

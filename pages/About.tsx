@@ -151,8 +151,8 @@ export const About = () => {
       {/* Profile Popup */}
       {selectedMember && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setSelectedMember(null)}></div>
-          <div className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-500 ease-out" onClick={() => setSelectedMember(null)}></div>
+          <div className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in duration-500 ease-out">
             <button 
               onClick={() => setSelectedMember(null)}
               className="absolute top-6 right-6 p-2 bg-slate-50 hover:bg-slate-900 hover:text-white rounded-full transition-all z-10"
