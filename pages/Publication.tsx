@@ -74,7 +74,12 @@ export const Publication = () => {
                   </div>
                   <h3 className="text-xl font-black text-slate-900 mb-4 group-hover:text-blue-600 transition-colors">{item.title}</h3>
                   <p className="text-slate-500 text-sm leading-relaxed mb-8 font-medium line-clamp-3">{item.excerpt}</p>
-                  <button className="flex items-center gap-2 text-blue-600 font-black text-xs uppercase tracking-widest">Read More <ArrowRight size={14} /></button>
+                  <Link 
+                    to={`/publication/news/${item.id}`}
+                    className="flex items-center gap-2 text-blue-600 font-black text-xs uppercase tracking-widest"
+                  >
+                    Read More <ArrowRight size={14} />
+                  </Link>
                 </div>
               </article>
             ))}
@@ -121,6 +126,12 @@ export const Publication = () => {
                     </div>
                     <h3 className="text-3xl font-black text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight">{project.title}</h3>
                     <p className="text-slate-500 leading-relaxed font-medium text-lg">{project.description}</p>
+                    <Link 
+                      to={`/publication/project/${project.id}`}
+                      className="inline-flex items-center gap-2 text-blue-600 font-black text-xs uppercase tracking-widest mt-4"
+                    >
+                      Read Full Details <ArrowRight size={14} />
+                    </Link>
                   </div>
                   <div className="lg:col-span-4 flex flex-col items-center gap-8 border-l border-slate-100 pl-8">
                     <div className="w-full text-center">

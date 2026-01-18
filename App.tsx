@@ -12,6 +12,7 @@ import { Contact } from './pages/Contact';
 import { Donate } from './pages/Donate';
 import { ThankYou } from './pages/ThankYou';
 import { Publication } from './pages/Publication';
+import { PublicationDetails } from './pages/PublicationDetails';
 import { ProjectReport } from './pages/ProjectReport';
 import { ProjectManagement } from './pages/ProjectManagement';
 import { Events } from './pages/Events';
@@ -32,6 +33,7 @@ const App: React.FC = () => {
             <Route path="/impact" element={<Impact />} />
             <Route path="/events" element={<Events />} />
             <Route path="/publication" element={<Publication />} />
+            <Route path="/publication/:type/:id" element={<PublicationDetails />} />
             <Route path="/project-report/:projectId" element={<ProjectReport />} />
             <Route path="/get-involved" element={<GetInvolved />} />
             <Route path="/contact" element={<Contact />} />
