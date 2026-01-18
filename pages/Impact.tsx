@@ -1,10 +1,36 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { IMPACT_DATA, TIMELINE_EVENTS } from '../constants';
-import { TrendingUp, MapPin, Users, Heart, Star, FileText, Image as ImageIcon } from 'lucide-react';
+import { TrendingUp, MapPin, Users, Heart, Star, FileText, Image as ImageIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const Impact = () => {
   const [selectedYear, setSelectedYear] = useState('2024');
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const galleryImages = [
+    "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?q=80&w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1524069290683-0457abfe42c3?q=80&w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1542810634-71277d95dcbb?q=80&w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1504159506876-f8338247a14a?q=80&w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?q=80&w=600&h=600&fit=crop"
+  ];
+
+  const nextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (lightboxIndex !== null) {
+      setLightboxIndex((lightboxIndex + 1) % galleryImages.length);
+    }
+  };
+
+  const prevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (lightboxIndex !== null) {
+      setLightboxIndex((lightboxIndex - 1 + galleryImages.length) % galleryImages.length);
+    }
+  };
 
   const stats = [
     { label: "Beneficiaries", value: "68,000+", icon: <Users size={24} /> },
@@ -15,6 +41,46 @@ export const Impact = () => {
 
   return (
     <div className="animate-in fade-in duration-700 bg-slate-50 min-h-screen">
+      {/* Lightbox */}
+      {lightboxIndex !== null && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center animate-in fade-in duration-300 p-4 md:p-10"
+          onClick={() => setLightboxIndex(null)}
+        >
+          <button 
+            className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors z-[110]"
+            onClick={() => setLightboxIndex(null)}
+          >
+            <X size={40} />
+          </button>
+          
+          <button 
+            className="absolute left-4 md:left-10 text-white/50 hover:text-white transition-all hover:scale-110 z-[110]"
+            onClick={prevImage}
+          >
+            <ChevronLeft size={60} strokeWidth={1} />
+          </button>
+          
+          <div className="relative max-w-5xl max-h-[85vh] w-full flex items-center justify-center pointer-events-none">
+            <img 
+              src={galleryImages[lightboxIndex].replace('h=600&', 'h=1200&').replace('w=600&', 'w=1600&')} 
+              alt="Field Work Enlarged" 
+              className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-in zoom-in duration-500 pointer-events-auto"
+            />
+            <div className="absolute bottom-[-50px] left-0 w-full text-center text-white/60 font-black uppercase tracking-[0.3em] text-[10px]">
+              Image {lightboxIndex + 1} of {galleryImages.length}
+            </div>
+          </div>
+
+          <button 
+            className="absolute right-4 md:right-10 text-white/50 hover:text-white transition-all hover:scale-110 z-[110]"
+            onClick={nextImage}
+          >
+            <ChevronRight size={60} strokeWidth={1} />
+          </button>
+        </div>
+      )}
+
       <section className="bg-slate-900 py-24 text-white text-center">
         <div className="max-w-7xl mx-auto px-4">
           <h1 className="text-5xl font-black mb-6 tracking-tight">Impact & Transformation</h1>
@@ -155,17 +221,12 @@ export const Impact = () => {
           <p className="mt-4 text-slate-500 font-bold uppercase tracking-widest text-[10px]">Visual records of our field operations</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?q=80&w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1524069290683-0457abfe42c3?q=80&w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1542810634-71277d95dcbb?q=80&w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1504159506876-f8338247a14a?q=80&w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?q=80&w=600&h=600&fit=crop"
-          ].map((url, i) => (
-            <div key={i} className="aspect-square rounded-3xl overflow-hidden group relative border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500">
+          {galleryImages.map((url, i) => (
+            <div 
+              key={i} 
+              className="aspect-square rounded-3xl overflow-hidden group relative border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 cursor-zoom-in"
+              onClick={() => setLightboxIndex(i)}
+            >
               <img 
                 src={url} 
                 alt="Field Work" 
@@ -181,3 +242,4 @@ export const Impact = () => {
     </div>
   );
 };
+
