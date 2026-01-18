@@ -142,7 +142,7 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] px-4 py-20 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] px-4 py-20 relative overflow-hidden animate-in fade-in zoom-in duration-1000">
       {/* Dynamic Background Elements */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-400 rounded-full blur-[160px] animate-pulse"></div>

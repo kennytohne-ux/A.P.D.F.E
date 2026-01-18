@@ -143,7 +143,7 @@ const Navbar = () => {
               >
                 <Link
                   to={link.path}
-                  className={`text-[11px] uppercase tracking-widest font-black transition-all duration-300 ease-in-out hover:text-blue-600 flex items-center gap-1 hover:scale-105 transform ${isActive(link.path) ? 'text-blue-600' : 'text-slate-500'}`}
+                  className={`text-[11px] uppercase tracking-widest font-black transition-all duration-500 ease-in-out hover:text-blue-600 flex items-center gap-1 hover:scale-105 active:scale-95 transform ${isActive(link.path) ? 'text-blue-600' : 'text-slate-500'}`}
                 >
                   {link.name}
                   {link.dropdown && <ChevronDown size={10} className={`transition-transform duration-300 ease-in-out ${activeDropdown === link.name ? 'rotate-180' : ''}`} />}
@@ -297,7 +297,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   }, [location]);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen animate-in fade-in duration-1000">
       {!isDashboard && <Navbar />}
       <main className="flex-grow">
         {children}
