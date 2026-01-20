@@ -17,24 +17,15 @@ export interface Program {
   id: string;
   title: string;
   description: string;
+  fullContent: string;
   details: string[];
   image: string;
 }
 
-export interface NewsUpdate {
+export interface ProjectGoal {
   id: string;
-  title: string;
-  date: string;
-  category: string;
-  excerpt: string;
-  image: string;
-}
-
-export interface GalleryItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  img: string;
+  text: string;
+  isCompleted: boolean;
 }
 
 export interface Project {
@@ -43,12 +34,36 @@ export interface Project {
   status: 'In Progress' | 'Completed';
   region: string;
   timeline: string;
+  duration: string;
   beneficiaries: string;
   description: string;
+  purpose: string;
+  field: string;
   progress: number;
+  goals: ProjectGoal[];
+  targetFunding: number;
+  currentFunding: number;
   completedItems: string[];
   missingItems: string[];
   lastUpdated?: string;
+  image?: string;
+}
+
+export interface NewsUpdate {
+  id: string;
+  title: string;
+  date: string;
+  category: string;
+  excerpt: string;
+  fullContent?: string;
+  image: string;
+}
+
+export interface GalleryItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  img: string;
 }
 
 export interface AppEvent {
@@ -60,6 +75,15 @@ export interface AppEvent {
   location: string;
   description: string;
   type: 'Mission' | 'Webinar' | 'Fundraiser' | 'Community';
+}
+
+export interface User {
+  id: string;
+  email: string;
+  role: 'admin' | 'helper';
+  isValidated: boolean;
+  name: string;
+  profilePicture?: string;
 }
 
 export interface Volunteer {
@@ -76,26 +100,17 @@ export interface Donation {
   name: string;
   amount: number;
   date: string;
-  project?: string;
-  source: 'Individual' | 'Corporate' | 'Grant' | 'Recurring';
+  projectId?: string;
+  source: string;
   status: 'Cleared' | 'Pending' | 'Flagged';
 }
 
 export interface Expense {
   id: string;
-  category: 'Salaries' | 'Field Projects' | 'Logistics' | 'Admin' | 'Marketing';
+  category: string;
   amount: number;
   date: string;
   description: string;
   recipient: string;
   status: 'Cleared' | 'Pending';
-}
-
-export interface User {
-  id: string;
-  email: string;
-  role: 'admin' | 'helper';
-  isValidated: boolean;
-  name: string;
-  profilePicture?: string;
 }

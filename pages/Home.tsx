@@ -24,6 +24,18 @@ const HERO_SLIDES = [
   }
 ];
 
+// Helper function moved to the top to ensure it is defined before usage in the component
+const slideContent = (slide: typeof HERO_SLIDES[0]) => {
+  const parts = slide.title.split(slide.accent);
+  return (
+    <>
+      {parts[0]}
+      <span className="text-green-400">{slide.accent}</span>
+      {parts[1]}
+    </>
+  );
+};
+
 export const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -74,13 +86,13 @@ export const Home = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 to="/donate" 
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 hover:scale-105 active:scale-95 rounded-full text-sm font-bold shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-full text-sm font-bold shadow-xl transition-all flex items-center justify-center gap-2 active:scale-95"
               >
                 Make a Donation <ChevronRight size={16} />
               </Link>
               <Link 
                 to="/about" 
-                className="px-6 py-2.5 bg-white/10 hover:bg-white/20 hover:scale-105 active:scale-95 backdrop-blur-md border border-white/30 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2"
+                className="px-6 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95"
               >
                 Learn More
               </Link>
@@ -128,7 +140,7 @@ export const Home = () => {
         ].map((stat, idx) => (
           <div key={idx} className="text-center group">
             <div className="flex justify-center mb-4 transition-transform group-hover:scale-110 duration-300">
-              {React.cloneElement(stat.icon as React.ReactElement, { size: 32 })}
+              {React.cloneElement(stat.icon as React.ReactElement<{ size?: number }>, { size: 32 })}
             </div>
             <div className="text-3xl font-bold text-slate-900 mb-1">{stat.value}</div>
             <div className="text-sm font-medium text-slate-500 uppercase tracking-wide">{stat.label}</div>
@@ -283,17 +295,5 @@ export const Home = () => {
         </div>
       </section>
     </div>
-  );
-};
-
-// Helper function to handle rich text in titles
-const slideContent = (slide: typeof HERO_SLIDES[0]) => {
-  const parts = slide.title.split(slide.accent);
-  return (
-    <>
-      {parts[0]}
-      <span className="text-green-400">{slide.accent}</span>
-      {parts[1]}
-    </>
   );
 };

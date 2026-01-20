@@ -13,12 +13,16 @@ import {
   Calendar, 
   Clock,
   ShieldCheck,
-  ChevronRight,
   Info,
-  Users
+  Circle,
+  XCircle,
+  Users,
+  DollarSign,
+  Activity,
+  ChevronRight
 } from 'lucide-react';
 import { useData } from '../context/MockDataContext';
-import { Project } from '../types';
+import { Project, ProjectGoal } from '../types';
 
 export const ProjectManagement = () => {
   const { projectId } = useParams();
@@ -26,24 +30,13 @@ export const ProjectManagement = () => {
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [formData, setFormData] = useState<Partial<Project>>({});
-  const [newItem, setNewItem] = useState('');
-  const [newNeed, setNewNeed] = useState('');
+  const [newGoalText, setNewGoalText] = useState('');
 
   useEffect(() => {
     const found = projects.find(p => p.id === projectId);
     if (found) {
       setProject(found);
-      setFormData({
-        title: found.title,
-        status: found.status,
-        region: found.region,
-        timeline: found.timeline,
-        beneficiaries: found.beneficiaries,
-        description: found.description,
-        progress: found.progress,
-        completedItems: [...(found.completedItems || [])],
-        missingItems: [...(found.missingItems || [])]
-      });
+      setFormData({ ...found });
     }
   }, [projectId, projects]);
 
@@ -56,31 +49,43 @@ export const ProjectManagement = () => {
     navigate('/dashboard');
   };
 
-  const addItem = (type: 'completed' | 'missing') => {
-    if (type === 'completed' && newItem.trim()) {
-      setFormData({ ...formData, completedItems: [...(formData.completedItems || []), newItem.trim()] });
-      setNewItem('');
-    } else if (type === 'missing' && newNeed.trim()) {
-      setFormData({ ...formData, missingItems: [...(formData.missingItems || []), newNeed.trim()] });
-      setNewNeed('');
-    }
+  const toggleGoal = (goalId: string) => {
+    const updatedGoals = formData.goals?.map(g => 
+      g.id === goalId ? { ...g, isCompleted: !g.isCompleted } : g
+    );
+    setFormData({ ...formData, goals: updatedGoals });
   };
 
-  const removeItem = (type: 'completed' | 'missing', index: number) => {
-    if (type === 'completed') {
-      const updated = [...(formData.completedItems || [])];
-      updated.splice(index, 1);
-      setFormData({ ...formData, completedItems: updated });
-    } else if (type === 'missing') {
-      const updated = [...(formData.missingItems || [])];
-      updated.splice(index, 1);
-      setFormData({ ...formData, missingItems: updated });
-    }
+  const addGoal = () => {
+    if (!newGoalText.trim()) return;
+    const newGoal: ProjectGoal = {
+      id: `g-${Date.now()}`,
+      text: newGoalText.trim(),
+      isCompleted: false
+    };
+    setFormData({
+      ...formData,
+      goals: [...(formData.goals || []), newGoal]
+    });
+    setNewGoalText('');
+  };
+
+  const removeGoal = (id: string) => {
+    setFormData({
+      ...formData,
+      goals: formData.goals?.filter(g => g.id !== id)
+    });
+  };
+
+  const calculateProgress = () => {
+    const goals = formData.goals || [];
+    if (goals.length === 0) return 0;
+    const completed = goals.filter(g => g.isCompleted).length;
+    return Math.round((completed / goals.length) * 100);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
-      {/* Header Sticky Bar */}
       <header className="bg-white border-b border-slate-200 py-6 px-8 flex justify-between items-center sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-4">
           <Link to="/dashboard" className="p-2.5 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
@@ -98,166 +103,164 @@ export const ProjectManagement = () => {
 
       <main className="max-w-7xl mx-auto px-8 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-8 space-y-10">
-          {/* Core Details Section */}
           <section className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-200 space-y-8">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-6 mb-6">
               <Info className="text-blue-600" size={24} />
-              <h2 className="text-2xl font-black">Mission Context</h2>
+              <h2 className="text-2xl font-black">Mission Progress Controls</h2>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Project Title</label>
-                <input type="text" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold focus:ring-2 focus:ring-blue-500/20" />
+            <div className="space-y-6">
+              <div className="flex justify-between items-end">
+                <h3 className="text-lg font-black text-slate-900">Strategic Goals</h3>
+                <span className="text-3xl font-black text-blue-600">{calculateProgress()}%</span>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Operational Region</label>
-                <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                  <input type="text" value={formData.region} onChange={(e) => setFormData({...formData, region: e.target.value})} className="w-full pl-10 pr-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold focus:ring-2 focus:ring-blue-500/20" />
-                </div>
+              
+              <div className="h-4 bg-slate-100 rounded-full overflow-hidden p-1 shadow-inner">
+                <div style={{ width: `${calculateProgress()}%` }} className="h-full bg-blue-600 rounded-full transition-all duration-700" />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Beneficiary Target</label>
-                <div className="relative">
-                  <Target className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                  <input type="text" value={formData.beneficiaries} onChange={(e) => setFormData({...formData, beneficiaries: e.target.value})} className="w-full pl-10 pr-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold focus:ring-2 focus:ring-blue-500/20" />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Strategic Timeline</label>
-                <div className="relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                  <input type="text" value={formData.timeline} onChange={(e) => setFormData({...formData, timeline: e.target.value})} className="w-full pl-10 pr-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold focus:ring-2 focus:ring-blue-500/20" />
-                </div>
-              </div>
-            </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Full Narrative Description</label>
-              <textarea rows={4} value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium focus:ring-2 focus:ring-blue-500/20" placeholder="Describe the mission goals and challenges..." />
+              <div className="space-y-3 pt-6">
+                {formData.goals?.map((goal) => (
+                  <div key={goal.id} className="flex items-center justify-between p-5 bg-slate-50 border border-slate-100 rounded-2xl group hover:bg-white hover:border-blue-100 transition-all">
+                    <div className="flex items-center gap-4 cursor-pointer flex-grow" onClick={() => toggleGoal(goal.id)}>
+                      {goal.isCompleted ? (
+                        <CheckCircle2 className="text-green-500" size={24} />
+                      ) : (
+                        <Circle className="text-slate-200" size={24} />
+                      )}
+                      <span className={`font-bold ${goal.isCompleted ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
+                        {goal.text}
+                      </span>
+                    </div>
+                    <button onClick={() => removeGoal(goal.id)} className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-4 pt-6">
+                <input 
+                  type="text" 
+                  value={newGoalText} 
+                  onChange={(e) => setNewGoalText(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && addGoal()}
+                  placeholder="Identify new strategic goal..." 
+                  className="flex-grow px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium focus:ring-2 focus:ring-blue-500/10" 
+                />
+                <button onClick={addGoal} className="px-8 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all">
+                  Add Goal
+                </button>
+              </div>
             </div>
           </section>
 
-          {/* Milestones: What We've Completed */}
           <section className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-6 mb-8">
-              <div className="flex items-center gap-3">
-                <CheckCircle2 className="text-green-600" size={24} />
-                <h2 className="text-2xl font-black">What We've Completed</h2>
-              </div>
-              <span className="text-[10px] font-black text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-widest">Public Milestones</span>
-            </div>
-
-            <div className="space-y-4 mb-8">
-              {formData.completedItems?.length ? formData.completedItems.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl group transition-all hover:bg-white hover:border-blue-200">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle2 size={16} className="text-green-500" />
-                    <span className="text-sm font-bold text-slate-700">{item}</span>
+             <h3 className="text-xl font-black mb-8 border-b border-slate-100 pb-4 uppercase tracking-tighter">Mission Intel Core</h3>
+             
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Project Title</label>
+                  <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-lg" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Region of Operation</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="text" value={formData.region} onChange={e => setFormData({...formData, region: e.target.value})} className="w-full pl-14 pr-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold" />
                   </div>
-                  <button onClick={() => removeItem('completed', idx)} className="text-red-400 opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 rounded-lg transition-all">
-                    <Trash2 size={16} />
-                  </button>
                 </div>
-              )) : (
-                <div className="p-8 border-2 border-dashed border-slate-100 rounded-3xl text-center text-slate-400 font-bold italic text-sm">
-                  "Initial phase complete. Detailed milestones pending updates."
-                </div>
-              )}
-            </div>
+             </div>
 
-            <div className="flex gap-4">
-              <input type="text" value={newItem} onChange={(e) => setNewItem(e.target.value)} placeholder="Add a new milestone (e.g. Roof construction complete)" className="flex-grow px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium focus:ring-2 focus:ring-blue-500/20" onKeyPress={(e) => e.key === 'Enter' && addItem('completed')} />
-              <button onClick={() => addItem('completed')} className="px-6 bg-slate-900 text-white rounded-xl font-bold hover:bg-black transition-all">
-                <Plus size={20} />
-              </button>
-            </div>
-          </section>
-
-          {/* Urgent Project Needs */}
-          <section className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-6 mb-8">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="text-amber-500" size={24} />
-                <h2 className="text-2xl font-black">Urgent Project Needs</h2>
-              </div>
-              <span className="text-[10px] font-black text-amber-500 bg-amber-50 px-3 py-1 rounded-full uppercase tracking-widest">Call to Action</span>
-            </div>
-
-            <div className="space-y-4 mb-8">
-              {formData.missingItems?.length ? formData.missingItems.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-4 bg-amber-50/10 border border-amber-100 rounded-2xl group transition-all hover:bg-white hover:border-amber-400">
-                  <div className="flex items-center gap-3">
-                    <AlertCircle size={16} className="text-amber-500" />
-                    <span className="text-sm font-bold text-slate-700">{item}</span>
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Strategic Timeline</label>
+                  <div className="relative">
+                    <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="text" value={formData.timeline} onChange={e => setFormData({...formData, timeline: e.target.value})} className="w-full pl-14 pr-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-xs" />
                   </div>
-                  <button onClick={() => removeItem('missing', idx)} className="text-red-400 opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 rounded-lg transition-all">
-                    <Trash2 size={16} />
-                  </button>
                 </div>
-              )) : (
-                <div className="p-8 border-2 border-dashed border-slate-100 rounded-3xl text-center text-slate-400 font-bold italic text-sm">
-                  "Current operational goals fully funded."
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Duration</label>
+                  <div className="relative">
+                    <Clock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="text" value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})} className="w-full pl-14 pr-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-xs" />
+                  </div>
                 </div>
-              )}
-            </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Beneficiaries Count</label>
+                  <div className="relative">
+                    <Users className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="text" value={formData.beneficiaries} onChange={e => setFormData({...formData, beneficiaries: e.target.value})} className="w-full pl-14 pr-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-xs" />
+                  </div>
+                </div>
+             </div>
 
-            <div className="flex gap-4">
-              <input type="text" value={newNeed} onChange={(e) => setNewNeed(e.target.value)} placeholder="Add a need (e.g. Funding for 50 scholastic kits)" className="flex-grow px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium focus:ring-2 focus:ring-blue-500/20" onKeyPress={(e) => e.key === 'Enter' && addItem('missing')} />
-              <button onClick={() => addItem('missing')} className="px-6 bg-slate-900 text-white rounded-xl font-bold hover:bg-black transition-all">
-                <Plus size={20} />
-              </button>
-            </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Funding Goal ($)</label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="number" value={formData.targetFunding} onChange={e => setFormData({...formData, targetFunding: Number(e.target.value)})} className="w-full pl-14 pr-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xl" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Strategic Sector</label>
+                  <select value={formData.field} onChange={e => setFormData({...formData, field: e.target.value as any})} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-sm">
+                    <option value="Health">Health</option>
+                    <option value="Education">Education</option>
+                    <option value="Protection">Protection</option>
+                    <option value="Economic">Economic</option>
+                    <option value="Environment">Environment</option>
+                    <option value="Peace">Peace</option>
+                  </select>
+                </div>
+             </div>
+
+             <div className="space-y-2 mt-10">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Mission Purpose Statement</label>
+                <div className="relative">
+                  <Activity className="absolute left-5 top-5 text-slate-300" size={18} />
+                  <textarea rows={2} value={formData.purpose} onChange={e => setFormData({...formData, purpose: e.target.value})} className="w-full pl-14 pr-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium text-sm" />
+                </div>
+             </div>
+
+             <div className="space-y-2 mt-10">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Detailed Field Description</label>
+                <textarea rows={5} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium text-sm" />
+             </div>
           </section>
         </div>
 
-        {/* Sidebar Controls */}
         <div className="lg:col-span-4 space-y-8">
           <div className="sticky top-32 space-y-8">
-            {/* Status & Progress Card */}
-            <div className="bg-slate-900 text-white p-10 rounded-[2.5rem] shadow-2xl">
-              <h3 className="text-xl font-black mb-10 flex items-center gap-2"><Clock size={20} /> Field Readiness</h3>
-              
-              <div className="space-y-10">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-end">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Execution Progress</span>
-                    <span className="text-4xl font-black text-blue-500">{formData.progress}%</span>
-                  </div>
-                  <input type="range" min="0" max="100" value={formData.progress} onChange={(e) => setFormData({...formData, progress: parseInt(e.target.value)})} className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                </div>
-
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Mission Status</label>
-                  <select value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value as any})} className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-xl outline-none font-bold text-white transition-colors focus:border-blue-500">
-                    <option value="In Progress" className="bg-slate-900">Active / In Progress</option>
-                    <option value="Completed" className="bg-slate-900">Mission Completed</option>
-                  </select>
-                </div>
+            <div className="bg-slate-900 text-white p-10 rounded-[3.5rem] shadow-2xl overflow-hidden relative group">
+              <h3 className="text-xl font-black mb-10 flex items-center gap-2 relative z-10"><Target size={20} className="text-blue-500" /> Operational Health</h3>
+              <div className="space-y-8 relative z-10">
+                 <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
+                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Completion readiness</p>
+                   <p className="text-5xl font-black text-blue-500">{calculateProgress()}%</p>
+                 </div>
+                 <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
+                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Accumulated Funding</p>
+                   <p className="text-5xl font-black text-green-500">${(formData.currentFunding || 0).toLocaleString()}</p>
+                   <p className="text-[10px] text-slate-500 font-bold uppercase mt-3 tracking-widest">Of Goal: ${formData.targetFunding?.toLocaleString()}</p>
+                 </div>
               </div>
-
-              <div className="mt-12 pt-10 border-t border-white/5">
-                <div className="flex items-start gap-4 p-5 bg-white/5 rounded-2xl border border-white/10">
-                  <ShieldCheck className="text-green-500 shrink-0 mt-0.5" size={20} />
-                  <div>
-                    <h4 className="text-sm font-black text-white">Impact Verification</h4>
-                    <p className="text-[10px] text-slate-500 leading-relaxed mt-2 uppercase font-bold tracking-tight">
-                      This project is verified by regional coordinators. 100% of contributions assigned here fund these listed needs.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl transition-transform group-hover:scale-150 duration-1000"></div>
             </div>
-
-            <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm text-center">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Regional Oversight</p>
-              <div className="flex items-center justify-center gap-2 text-slate-900 font-bold mb-6">
-                <Users size={18} className="text-blue-600" /> Lead Coordinator Authorized
-              </div>
-              <button onClick={() => navigate('/dashboard')} className="w-full py-3 border-2 border-slate-100 rounded-xl text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all">
-                Cancel Session
-              </button>
+            
+            <div className="p-10 bg-white rounded-[3rem] border border-slate-100 shadow-sm flex flex-col items-center text-center">
+               <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mb-6">
+                 <ShieldCheck size={36} />
+               </div>
+               <h4 className="text-lg font-black uppercase tracking-tight mb-3">Sync Authority</h4>
+               <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">
+                  Deploying these updates synchronizes all regional publications and field agents dashboards.
+               </p>
+               <button onClick={handleSave} className="mt-8 w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all">
+                  Sync mission <ChevronRight size={16} />
+               </button>
             </div>
           </div>
         </div>

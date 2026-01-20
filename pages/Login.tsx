@@ -50,8 +50,8 @@ export const Login = () => {
       setGeneratedOtp(code);
       setAuthorizedUser(user);
 
-      // Use Gemini to craft a professional humanitarian security email
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      // Fix: Creating GoogleGenAI instance with named parameter and process.env.API_KEY directly
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const prompt = `Generate a professional, high-security OTP email for the organization "A.P.D.F.E (Action Pour le Développement de la Femme et de l'Enfant)". 
       Recipient: ${user.name} (${user.email})
       Code: ${code}
@@ -63,10 +63,8 @@ export const Login = () => {
         contents: prompt,
       });
 
+      // Fix: Accessing .text as a property directly from the response
       const emailBody = response.text || `Security Alert: Your access code is ${code}.`;
-
-      // Log OTP for testing in environment
-      console.log(`[AUTH] Generated OTP for ${user.email}: ${code}`);
 
       // Simulating "sending" to actual email via a visible System Notification
       setTimeout(() => {
@@ -142,7 +140,7 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] px-4 py-20 relative overflow-hidden animate-in fade-in zoom-in duration-1000">
+    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] px-4 py-20 relative overflow-hidden">
       {/* Dynamic Background Elements */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-400 rounded-full blur-[160px] animate-pulse"></div>

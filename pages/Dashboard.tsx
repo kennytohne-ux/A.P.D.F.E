@@ -3,706 +3,332 @@ import React, { useState, useRef, useMemo } from 'react';
 import { Navigate, Link, useNavigate } from 'react-router-dom';
 import { useData } from '../context/MockDataContext';
 import { 
-  Users, 
-  Heart, 
-  Briefcase, 
-  Plus, 
-  CheckCircle, 
-  Wallet, 
-  Settings, 
-  LogOut, 
-  FileText, 
-  LayoutDashboard, 
-  Globe, 
-  Bell, 
-  Search,
-  ArrowUpRight,
-  TrendingUp,
-  Activity,
-  BarChart3,
-  User as UserIcon,
-  Camera,
-  Edit2,
-  Save,
-  X,
-  Image as ImageIcon,
-  Clock,
-  Layers,
-  ChevronRight,
-  ChevronLeft,
-  Upload,
-  Trash2,
-  AlertCircle,
-  PieChart as PieChartIcon,
-  Zap,
-  ShieldCheck,
-  ArrowDownRight,
-  Filter,
-  CreditCard,
-  Building,
-  Target,
-  Mail,
-  MapPin,
-  RefreshCw,
-  Menu,
-  Sparkles,
-  Type,
-  UserPlus,
-  Info,
-  HandHelping,
-  Calendar
+  Users, Heart, Plus, Wallet, LogOut, FileText, LayoutDashboard, 
+  TrendingUp, X, Image as ImageIcon, Clock, ChevronRight, ChevronLeft, 
+  Upload, Zap, ShieldCheck, Target, Calendar, Edit2, Trash2, MapPin, 
+  DollarSign, Activity, UserCircle, ShieldAlert, Search, Filter, Mail,
+  ArrowUpRight, ArrowDownRight, CreditCard, Landmark, History, Download,
+  PiggyBank, Receipt
 } from 'lucide-react';
 import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  BarChart, 
-  Bar, 
-  Cell,
-  PieChart,
-  Pie,
-  Legend
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { Project, Donation, Expense, NewsUpdate, GalleryItem, User, Volunteer, AppEvent } from '../types';
+import { ProjectGoal, User, Donation, Expense } from '../types';
 
 export const Dashboard = () => {
   const { 
-    currentUser, 
-    logout, 
-    news, 
-    projects, 
-    donations, 
-    expenses,
-    volunteers,
-    helpers, 
-    events,
-    gallery,
-    updateCurrentProfile,
-    addNews,
-    addImage,
-    addProject,
-    addDonation,
-    addExpense,
-    addEvent,
-    registerStaff,
-    resetDatabase,
-    getAggregates
+    currentUser, logout, news, projects, gallery, donations, expenses,
+    volunteers, helpers, addNews, updateNews, deleteNews, addImage,
+    updateImage, deleteImage, addProject, updateProject, deleteProject,
+    getAggregates, registerStaff, updateUser, addDonation, addExpense
   } = useData();
   
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
-
   const stats = useMemo(() => getAggregates(), [donations, expenses, projects, volunteers]);
 
-  const [tab, setTab] = useState<'overview' | 'content' | 'community' | 'wallet' | 'events' | 'users' | 'profile'>('overview');
+  // Tab & Navigation State
+  const [tab, setTab] = useState<'overview' | 'publications' | 'volunteers' | 'wallet' | 'staff' | 'profile'>('overview');
   const [contentSubTab, setContentSubTab] = useState<'All' | 'News' | 'Images' | 'Projects'>('All');
-  const [communitySubTab, setCommunitySubTab] = useState<'Staff' | 'Volunteers'>('Staff');
+  const [walletSubTab, setWalletSubTab] = useState<'overview' | 'intake' | 'withdrawals'>('overview');
   const [isCollapsed, setIsCollapsed] = useState(false);
   
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  // Modal & Form States
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [creationStep, setCreationStep] = useState<'select' | 'form'>('select');
-  const [selectedCreateType, setSelectedCreateType] = useState<'News' | 'Images' | 'Projects' | 'Events' | null>(null);
-  const [publicationForm, setPublicationForm] = useState<any>({
-    title: '',
-    category: '',
-    excerpt: '',
-    image: '',
-    region: '',
-    timeline: '',
-    beneficiaries: '',
-    description: '',
-    subtitle: '',
-    img: '',
-    date: '',
-    startTime: '',
-    endTime: '',
-    location: '',
-    type: 'Mission'
+  const [selectedCreateType, setSelectedCreateType] = useState<'News' | 'Images' | 'Projects' | 'Intake' | 'Withdrawal' | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  
+  const [projectGoals, setProjectGoals] = useState<string[]>(['Initial mission analysis']);
+  const [form, setForm] = useState<any>({
+    title: '', category: '', excerpt: '', image: '', region: '', timeline: '', 
+    duration: '', beneficiaries: '', description: '', purpose: '', field: 'Health', 
+    targetFunding: 5000, subtitle: '', img: '', amount: 0, donorName: '', recipient: '', source: 'Manual Entry'
   });
 
-  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-  const [registerForm, setRegisterForm] = useState({ name: '', email: '', role: 'helper' as 'admin' | 'helper' });
-
-  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
-  const [checkoutType, setCheckoutType] = useState<'Income' | 'Expense'>('Income');
-  const [financialForm, setFinancialForm] = useState<any>({});
-
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [editedName, setEditedName] = useState(currentUser?.name || '');
-
-  const unifiedLedger = useMemo(() => {
-    const ledger = [
-      ...(donations || []).map(d => ({ ...d, type: 'Income' })),
-      ...(expenses || []).map(e => ({ ...e, type: 'Expense', name: e.description || 'Project Support', source: e.category || 'Field' }))
-    ];
-    return ledger.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [donations, expenses]);
+  const [staffForm, setStaffForm] = useState({ name: '', email: '', role: 'helper' as 'admin' | 'helper' });
 
   if (!currentUser) return <Navigate to="/login" />;
   const isAdmin = currentUser.role === 'admin';
-  const isRootAdmin = currentUser.email === 'kennytohne@gmail.com';
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  const handleLogout = () => { logout(); navigate('/'); };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPublicationForm({ ...publicationForm, image: reader.result as string, img: reader.result as string });
+        const base64 = reader.result as string;
+        setForm({ ...form, image: base64, img: base64 });
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const id = `asset-${Date.now()}`;
+
+    if (editingId) {
+      if (selectedCreateType === 'News') updateNews(editingId, { ...form });
+      else if (selectedCreateType === 'Images') updateImage(editingId, { title: form.title, subtitle: form.subtitle, img: form.img });
+      else if (selectedCreateType === 'Projects') {
+        const updatedGoals: ProjectGoal[] = projectGoals
+          .filter(g => g.trim() !== '')
+          .map((g, i) => ({ id: `g-${editingId}-${i}`, text: g, isCompleted: false }));
+        updateProject(editingId, { ...form, goals: updatedGoals });
+      }
+    } else {
+      if (selectedCreateType === 'News') addNews({ id, ...form, date });
+      else if (selectedCreateType === 'Images') addImage({ id, title: form.title, subtitle: form.subtitle, img: form.img });
+      else if (selectedCreateType === 'Projects') {
+        const initialGoals: ProjectGoal[] = projectGoals
+          .filter(g => g.trim() !== '')
+          .map((g, i) => ({ id: `g-${id}-${i}`, text: g, isCompleted: false }));
+        addProject({ 
+          id, ...form, status: 'In Progress', progress: 0, goals: initialGoals, 
+          completedItems: [], missingItems: [], lastUpdated: date, currentFunding: 0 
+        });
+      } else if (selectedCreateType === 'Intake') {
+        addDonation({
+          id: `don-${Date.now()}`,
+          name: form.donorName || 'Manual Entry',
+          amount: Number(form.amount),
+          date,
+          source: form.source,
+          status: 'Cleared'
+        });
+      } else if (selectedCreateType === 'Withdrawal') {
+        addExpense({
+          id: `exp-${Date.now()}`,
+          category: form.category || 'Operational',
+          amount: Number(form.amount),
+          date,
+          description: form.description,
+          recipient: form.recipient,
+          status: 'Cleared'
+        });
+      }
+    }
+    setIsModalOpen(false);
+    setEditingId(null);
+    setForm({
+      title: '', category: '', excerpt: '', image: '', region: '', timeline: '', 
+      duration: '', beneficiaries: '', description: '', purpose: '', field: 'Health', 
+      targetFunding: 5000, subtitle: '', img: '', amount: 0, donorName: '', recipient: '', source: 'Manual Entry'
+    });
+  };
+
+  const handleEdit = (type: any, item: any) => {
+    setSelectedCreateType(type);
+    setEditingId(item.id);
+    setForm({ ...item, image: item.image || item.img, img: item.image || item.img });
+    if (type === 'Projects') setProjectGoals(item.goals.map((g: any) => g.text));
+    setCreationStep('form');
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmDeleteNews = (id: string, title: string) => {
+    if (confirm(`Operational Purge: Permanently delete news record "${title}"?`)) {
+      deleteNews(id);
+    }
+  };
+
+  const handleConfirmDeleteProject = (id: string, title: string) => {
+    if (confirm(`Operational Purge: Permanently delete project record "${title}"?`)) {
+      deleteProject(id);
+    }
+  };
+
   const handleStaffRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAdmin) return;
-    registerStaff(registerForm.name, registerForm.email, registerForm.role);
-    setIsRegisterModalOpen(false);
-    setRegisterForm({ name: '', email: '', role: 'helper' });
+    registerStaff(staffForm.name, staffForm.email, staffForm.role);
+    setStaffForm({ name: '', email: '', role: 'helper' });
   };
 
-  const handleProfileUpdate = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateCurrentProfile({ name: editedName });
-    setIsEditingProfile(false);
-  };
-
-  const handlePublicationSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const id = `p-${Date.now()}`;
-    const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-    if (selectedCreateType === 'News') {
-      addNews({ 
-        id, 
-        title: publicationForm.title, 
-        date, 
-        category: publicationForm.category || 'Regional Update', 
-        excerpt: publicationForm.excerpt, 
-        image: publicationForm.image || 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop' 
-      });
-    } else if (selectedCreateType === 'Projects') {
-      addProject({ 
-        id, 
-        title: publicationForm.title, 
-        status: 'In Progress', 
-        region: publicationForm.region, 
-        timeline: publicationForm.timeline, 
-        beneficiaries: publicationForm.beneficiaries, 
-        description: publicationForm.description, 
-        progress: 0, 
-        completedItems: ["Resource evaluation"], 
-        missingItems: ["Funding required for first phase"], 
-        lastUpdated: date 
-      });
-    } else if (selectedCreateType === 'Images') {
-      addImage({ 
-        id, 
-        title: publicationForm.title, 
-        subtitle: publicationForm.subtitle, 
-        img: publicationForm.img || 'https://images.unsplash.com/photo-1542810634-71277d95dcbb?q=80&w=2070&auto=format&fit=crop' 
-      });
-    } else if (selectedCreateType === 'Events') {
-      addEvent({
-        id,
-        title: publicationForm.title,
-        date: publicationForm.date,
-        startTime: publicationForm.startTime,
-        endTime: publicationForm.endTime,
-        location: publicationForm.location,
-        description: publicationForm.description,
-        type: publicationForm.type as any
-      });
-    }
-
-    setIsCreateModalOpen(false);
-    setPublicationForm({ title: '', category: '', excerpt: '', image: '', region: '', timeline: '', beneficiaries: '', description: '', subtitle: '', img: '', date: '', startTime: '', endTime: '', location: '', type: 'Mission' });
-    setCreationStep('select');
-  };
-
-  const handleFinancialSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const id = `f-${Date.now()}`;
-    const date = new Date().toISOString().split('T')[0];
-    if (checkoutType === 'Income') {
-      addDonation({ id, name: financialForm.name, amount: parseFloat(financialForm.amount), date, source: financialForm.source || 'Direct Contribution', status: 'Cleared' });
-    } else {
-      addExpense({ id, category: (financialForm.category as any) || 'Field Projects', amount: parseFloat(financialForm.amount), date, description: financialForm.description, recipient: financialForm.recipient || 'Regional Vendor', status: 'Cleared' });
-    }
-    setIsCheckoutModalOpen(false);
-    setFinancialForm({});
-  };
+  const menuItems = [
+    { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={20} />, roles: ['admin', 'helper'] },
+    { id: 'publications', label: 'Publications', icon: <FileText size={20} />, roles: ['admin', 'helper'] },
+    { id: 'volunteers', label: 'Volunteers', icon: <Users size={20} />, roles: ['admin', 'helper'] },
+    { id: 'wallet', label: 'Wallet', icon: <Wallet size={20} />, roles: ['admin'] },
+    { id: 'staff', label: 'Staff Hub', icon: <ShieldAlert size={20} />, roles: ['admin'] },
+    { id: 'profile', label: 'Profile', icon: <UserCircle size={20} />, roles: ['admin', 'helper'] },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col md:flex-row font-sans text-slate-900 overflow-hidden">
-      {/* Sidebar */}
-      <aside className={`bg-slate-900 text-white flex flex-col sticky top-0 h-screen z-50 overflow-y-auto shrink-0 shadow-2xl transition-all duration-300 ease-in-out ${isCollapsed ? 'w-full md:w-20' : 'w-full md:w-72'}`}>
-        <div className={`p-8 flex items-center gap-3 border-b border-white/5 transition-all duration-300 ${isCollapsed ? 'justify-center p-6' : ''}`}>
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
-            <Globe size={20} className="text-white" />
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col md:flex-row font-sans text-slate-900">
+      {/* Sidebar Navigation */}
+      <aside className={`bg-slate-900 text-white flex flex-col h-screen sticky top-0 z-50 shrink-0 shadow-2xl transition-all duration-300 ${isCollapsed ? 'w-24' : 'w-80'}`}>
+        <div className={`p-10 flex items-center gap-4 border-b border-white/5 ${isCollapsed ? 'justify-center' : ''}`}>
+          <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl shrink-0">
+            <ShieldCheck size={24} className="text-white" />
           </div>
           {!isCollapsed && (
-            <div className="animate-in fade-in duration-500 overflow-hidden whitespace-nowrap">
-              <div className="text-xl font-black tracking-tight leading-none">APDFE <span className="text-blue-500">HQ</span></div>
-              <div className="text-[9px] uppercase font-black text-slate-500 mt-1.5 tracking-widest">Global Field Control</div>
+            <div className="animate-in fade-in duration-500">
+              <div className="text-2xl font-black tracking-tighter uppercase leading-none">HQ <span className="text-blue-500">Node</span></div>
+              <div className="text-[8px] uppercase font-black text-slate-500 mt-1.5 tracking-[0.3em]">{currentUser.role} Security</div>
             </div>
           )}
         </div>
         
-        <div className="p-4 md:p-6 space-y-1.5 flex-grow">
-          <button onClick={() => setTab('overview')} className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${tab === 'overview' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'} ${isCollapsed ? 'justify-center' : ''}`}>
-            <LayoutDashboard size={18} /> {!isCollapsed && <span>Dashboard Overview</span>}
-          </button>
-          
-          <button onClick={() => setTab('content')} className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${tab === 'content' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'} ${isCollapsed ? 'justify-center' : ''}`}>
-            <FileText size={18} /> {!isCollapsed && <span>Project Hub</span>}
-          </button>
-          
-          <button onClick={() => setTab('events')} className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${tab === 'events' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'} ${isCollapsed ? 'justify-center' : ''}`}>
-            <Calendar size={18} /> {!isCollapsed && <span>Event Control</span>}
-          </button>
+        <nav className="p-6 space-y-1 flex-grow overflow-y-auto no-scrollbar">
+          {menuItems.filter(item => item.roles.includes(currentUser.role)).map(item => (
+            <button 
+              key={item.id} 
+              onClick={() => setTab(item.id as any)} 
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${tab === item.id ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-400 hover:text-white hover:bg-white/5'} ${isCollapsed ? 'justify-center' : ''}`}
+            >
+              {item.icon} {!isCollapsed && <span>{item.label}</span>}
+            </button>
+          ))}
+        </nav>
 
-          <button onClick={() => setTab('community')} className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${tab === 'community' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'} ${isCollapsed ? 'justify-center' : ''}`}>
-            <Users size={18} /> {!isCollapsed && <span>Community HQ</span>}
-          </button>
-          
-          {isAdmin && (
-            <>
-              <div className={`mt-8 mb-2 px-4 transition-opacity duration-300 ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}>
-                <p className="text-[10px] uppercase font-black text-slate-500 tracking-[0.25em]">Strategic Access</p>
-              </div>
-              <button onClick={() => setTab('wallet')} className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${tab === 'wallet' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'} ${isCollapsed ? 'justify-center' : ''}`}>
-                <Wallet size={18} /> {!isCollapsed && <span>Finance Ledger</span>}
-              </button>
-              <button onClick={() => setTab('users')} className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${tab === 'users' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'} ${isCollapsed ? 'justify-center' : ''}`}>
-                <ShieldCheck size={18} /> {!isCollapsed && <span>Personnel Hub</span>}
-              </button>
-            </>
-          )}
-        </div>
-
-        <div className="p-6 mt-auto border-t border-white/5">
-          <button onClick={() => setTab('profile')} className={`w-full flex items-center gap-3 p-3.5 mb-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${tab === 'profile' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'} ${isCollapsed ? 'justify-center' : ''}`}>
-             <UserIcon size={18} /> {!isCollapsed && <span>My ID</span>}
-          </button>
-          <button onClick={handleLogout} className={`w-full flex items-center gap-3 p-3.5 text-red-400 hover:bg-red-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isCollapsed ? 'justify-center' : ''}`}>
-            <LogOut size={18} /> {!isCollapsed && <span>Logout</span>}
+        <div className="p-8 mt-auto border-t border-white/5">
+          <button onClick={handleLogout} className={`w-full flex items-center gap-4 p-4 text-red-400 hover:bg-red-500/10 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${isCollapsed ? 'justify-center' : ''}`}>
+            <LogOut size={20} /> {!isCollapsed && <span>Exit Portal</span>}
           </button>
         </div>
       </aside>
 
-      {/* Main UI */}
-      <div className="flex-grow flex flex-col h-screen overflow-y-auto">
-        <header className="bg-white border-b border-slate-200 py-4 px-10 flex justify-between items-center sticky top-0 z-40 shadow-sm">
-           <div className="flex items-center gap-6">
-             <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-2.5 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 transition-colors hidden md:block">
-               {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+      {/* Main Content Area */}
+      <div className="flex-grow flex flex-col overflow-y-auto no-scrollbar h-screen">
+        <header className="bg-white border-b border-slate-200 py-6 px-12 flex justify-between items-center sticky top-0 z-40">
+           <div className="flex items-center gap-8">
+             <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-3 bg-slate-50 text-slate-600 rounded-2xl hover:bg-slate-100 transition-colors">
+               {isCollapsed ? <ChevronRight size={22} /> : <ChevronLeft size={22} />}
              </button>
-             <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">APDFE Cloud Interface V4.0</div>
+             <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Regional HQ Hub • Operational Node</div>
            </div>
-           <Link to="/" className="px-6 py-2.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-black transition-all">Public Portal</Link>
+           <div className="flex items-center gap-4">
+             <div className="text-right">
+               <div className="text-sm font-black text-slate-900 uppercase tracking-tighter">{currentUser.name}</div>
+               <div className="text-[9px] font-black text-blue-600 uppercase tracking-widest">{currentUser.role} Agent</div>
+             </div>
+             <img src={currentUser.profilePicture || `https://ui-avatars.com/api/?name=${currentUser.name}`} className="w-10 h-10 rounded-full border-2 border-slate-200" />
+           </div>
         </header>
 
-        <main className="p-8 md:p-12 space-y-12">
+        <main className="p-12 space-y-16">
+          {/* OVERVIEW TAB */}
           {tab === 'overview' && (
-            <div className="space-y-12 animate-in fade-in duration-700">
-               <div className="flex justify-between items-end">
-                 <div>
-                   <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none">Field Command</h1>
-                   <p className="text-slate-400 mt-2 font-black uppercase tracking-widest text-[10px]">Strategic resource visualization</p>
-                 </div>
-               </div>
-               
-               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="space-y-16 animate-in fade-in duration-700">
+               <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 {[
-                  { label: "Regional Intake", value: `$${stats.totalRevenue.toLocaleString()}`, icon: <Wallet className="text-blue-600" /> },
-                  { label: "Community", value: stats.volunteerCount, icon: <Users className="text-green-600" /> },
+                  { label: "Intake Total", value: `$${stats.totalRevenue.toLocaleString()}`, icon: <Wallet className="text-blue-600" /> },
+                  { label: "Field Agents", value: stats.volunteerCount, icon: <Users className="text-green-600" /> },
                   { label: "Active Missions", value: stats.projectCount, icon: <Target className="text-amber-600" /> },
-                  { label: "Beneficiaries", value: stats.activeBeneficiaries, icon: <Heart className="text-red-600" /> },
+                  { label: "Lives Impacted", value: stats.activeBeneficiaries, icon: <Heart className="text-red-600" /> },
                 ].map((stat, i) => (
-                  <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-xl transition-all group">
-                    <div className="p-4 bg-slate-50 rounded-2xl w-fit mb-6 group-hover:bg-slate-900 group-hover:text-white transition-all">{stat.icon}</div>
-                    <div className="text-3xl font-black text-slate-900 mb-1">{stat.value}</div>
-                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</div>
+                  <div key={i} className="bg-white p-10 rounded-[3.5rem] border border-slate-200 shadow-sm border-b-8 border-b-transparent hover:border-b-blue-600 transition-all">
+                    <div className="p-5 bg-slate-50 rounded-2xl w-fit mb-8">{stat.icon}</div>
+                    <div className="text-4xl font-black text-slate-900 mb-2 tracking-tighter">{stat.value}</div>
+                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</div>
                   </div>
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm">
-                  <h3 className="text-xl font-black mb-10 flex items-center gap-3"><TrendingUp className="text-blue-600" /> Resource Flow</h3>
-                  <div className="h-[350px]">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <div className="lg:col-span-2 bg-white p-12 rounded-[4rem] border border-slate-200 shadow-sm">
+                  <h3 className="text-2xl font-black mb-12 flex items-center gap-4 uppercase tracking-tight"><TrendingUp className="text-blue-600" /> Activity Metrics</h3>
+                  <div className="h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={stats.revenueHistory}>
-                        <defs>
-                          <linearGradient id="colorAmt" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
-                        <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
-                        <Tooltip contentStyle={{borderRadius: '16px', border: 'none'}} />
-                        <Area type="monotone" dataKey="amount" stroke="#3b82f6" fillOpacity={1} fill="url(#colorAmt)" strokeWidth={4} />
+                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} />
+                        <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} />
+                        <Tooltip contentStyle={{borderRadius: '24px', border: 'none', boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)', fontWeight: 800}} />
+                        <Area type="monotone" dataKey="amount" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} strokeWidth={5} />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
-                <div className="bg-slate-900 text-white p-10 rounded-[3rem] shadow-2xl relative overflow-hidden flex flex-col justify-center">
-                   <h3 className="text-xl font-black mb-8 relative z-10 flex items-center gap-3"><Zap size={20} className="text-amber-400" /> Mission Health</h3>
-                   <div className="space-y-10 relative z-10">
-                     <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
-                        <div className="flex justify-between items-center mb-4">
-                           <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Readiness Index</span>
-                           <span className="text-lg font-black text-blue-400">88%</span>
-                        </div>
-                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                           <div className="h-full bg-blue-500 w-[88%]"></div>
-                        </div>
-                     </div>
-                     <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
-                        <div className="flex justify-between items-center mb-4">
-                           <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Stability index</span>
-                           <span className="text-lg font-black text-green-400">95%</span>
-                        </div>
-                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                           <div className="h-full bg-green-500 w-[95%]"></div>
-                        </div>
-                     </div>
-                   </div>
+                <div className="bg-slate-900 text-white p-14 rounded-[4rem] shadow-2xl relative overflow-hidden flex flex-col justify-center">
+                  <h3 className="text-2xl font-black mb-12 flex items-center gap-4 uppercase tracking-tight"><Zap size={24} className="text-amber-400" /> Hub Status</h3>
+                  <div className="space-y-12">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                        <span className="text-slate-500">Operational Pulse</span>
+                        <span className="text-blue-400">Stable</span>
+                      </div>
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-500 w-[95%]"></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {tab === 'events' && (
-            <div className="space-y-8 animate-in fade-in duration-700">
-               <div className="flex justify-between items-center border-b border-slate-200 pb-10">
+          {/* PUBLICATIONS TAB */}
+          {tab === 'publications' && (
+            <div className="space-y-12 animate-in fade-in duration-700">
+              <div className="flex flex-col md:flex-row justify-between md:items-center gap-8 border-b border-slate-200 pb-12">
                 <div>
-                  <h1 className="text-4xl font-black text-slate-900 tracking-tight">Mission Events</h1>
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-2">Briefings, Webinars & Community gatherings</p>
+                  <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none">Intelligence Hub</h1>
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mt-4">Authorized Field Assets</p>
                 </div>
-                <button onClick={() => { setSelectedCreateType('Events'); setCreationStep('form'); setIsCreateModalOpen(true); }} className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-black shadow-xl transition-all">
-                  <Plus size={18} /> Schedule New Event
+                <button onClick={() => { setEditingId(null); setCreationStep('select'); setIsModalOpen(true); }} className="px-10 py-5 bg-blue-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-blue-700 shadow-2xl transition-all scale-100 active:scale-95">
+                  <Plus size={20} /> Deploy Update
                 </button>
               </div>
 
-              <div className="bg-white rounded-[3rem] shadow-sm border border-slate-200 overflow-hidden">
-                 <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Event Identity</th>
-                        <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Timestamp & Location</th>
-                        <th className="px-10 py-6 text-right text-[10px] font-black uppercase text-slate-400 tracking-widest">Management</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {events.map(ev => (
-                        <tr key={ev.id} className="hover:bg-slate-50 transition-colors">
-                           <td className="px-10 py-8">
-                             <div className="flex items-center gap-4">
-                               <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-black">EV</div>
-                               <div>
-                                 <span className="font-black text-slate-900 text-sm block leading-tight">{ev.title}</span>
-                                 <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">{ev.type}</span>
-                               </div>
-                             </div>
-                           </td>
-                           <td className="px-10 py-8">
-                             <div className="text-[10px] font-black uppercase text-slate-600 tracking-widest mb-1">{ev.date} • {ev.startTime} - {ev.endTime}</div>
-                             <div className="text-[10px] font-bold text-slate-400 flex items-center gap-1 uppercase"><MapPin size={10} /> {ev.location}</div>
-                           </td>
-                           <td className="px-10 py-8 text-right">
-                              <button className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:underline">Edit Entry</button>
-                           </td>
-                        </tr>
-                      ))}
-                      {events.length === 0 && (
-                        <tr><td colSpan={3} className="px-10 py-20 text-center text-slate-400 font-black uppercase text-xs tracking-widest">No scheduled mission events</td></tr>
-                      )}
-                    </tbody>
-                 </table>
-              </div>
-            </div>
-          )}
-
-          {tab === 'content' && (
-            <div className="space-y-8 animate-in fade-in duration-700">
-               <div className="flex justify-between items-center border-b border-slate-200 pb-10">
-                <div>
-                  <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none">Project Hub</h1>
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-2">Direct Field update control</p>
-                </div>
-                <button onClick={() => { setCreationStep('select'); setIsCreateModalOpen(true); }} className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-black shadow-xl transition-all">
-                  <Plus size={18} /> Deploy Intelligence
-                </button>
-              </div>
-
-              <div className="flex items-center gap-4 p-2 bg-slate-100 rounded-2xl w-fit">
+              <div className="flex items-center gap-3 p-2 bg-slate-100 rounded-[1.5rem] w-fit">
                 {['All', 'News', 'Projects', 'Images'].map((sub) => (
-                  <button key={sub} onClick={() => setContentSubTab(sub as any)} className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${contentSubTab === sub ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                  <button key={sub} onClick={() => setContentSubTab(sub as any)} className={`px-10 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${contentSubTab === sub ? 'bg-white text-blue-600 shadow-xl' : 'text-slate-500 hover:text-slate-700'}`}>
                     {sub}
                   </button>
                 ))}
               </div>
 
-              <div className="bg-white rounded-[3rem] shadow-sm border border-slate-200 overflow-hidden">
-                 <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Publication Identity</th>
-                        <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Regional Metadata</th>
-                        <th className="px-10 py-6 text-right text-[10px] font-black uppercase text-slate-400 tracking-widest">Management</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {(contentSubTab === 'All' || contentSubTab === 'News') && news.map(n => (
-                        <tr key={n.id} className="hover:bg-slate-50 transition-colors group">
-                           <td className="px-10 py-8">
-                             <div className="flex items-center gap-4">
-                               <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-black">N</div>
-                               <span className="font-black text-slate-900 text-sm leading-tight">{n.title}</span>
-                             </div>
-                           </td>
-                           <td className="px-10 py-8">
-                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{n.category} • {n.date}</span>
-                           </td>
-                           <td className="px-10 py-8 text-right">
-                              <button className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:underline">Edit Entry</button>
-                           </td>
-                        </tr>
-                      ))}
-                      {(contentSubTab === 'All' || contentSubTab === 'Projects') && projects.map(p => (
-                        <tr key={p.id} className="hover:bg-slate-50 transition-colors group">
-                           <td className="px-10 py-8">
-                             <div className="flex items-center gap-4">
-                               <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-black">P</div>
-                               <span className="font-black text-slate-900 text-sm leading-tight">{p.title}</span>
-                             </div>
-                           </td>
-                           <td className="px-10 py-8">
-                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{p.region} • {p.progress}% Status</span>
-                           </td>
-                           <td className="px-10 py-8 text-right">
-                              <Link to={`/dashboard/project/${p.id}`} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all">Update Mission</Link>
-                           </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                 </table>
-              </div>
-            </div>
-          )}
-
-          {tab === 'community' && (
-            <div className="space-y-12 animate-in fade-in duration-700">
-               <div className="flex justify-between items-center border-b border-slate-200 pb-10">
-                <div>
-                  <h1 className="text-4xl font-black text-slate-900 tracking-tight">Community Management</h1>
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Staff & Global Volunteers Registry</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 p-2 bg-slate-100 rounded-2xl w-fit">
-                {['Staff', 'Volunteers'].map((sub) => (
-                  <button key={sub} onClick={() => setCommunitySubTab(sub as any)} className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${communitySubTab === sub ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-                    {sub}
-                  </button>
-                ))}
-              </div>
-
-              {communitySubTab === 'Staff' ? (
-                <div className="bg-white rounded-[3rem] shadow-sm border border-slate-200 overflow-hidden">
-                  <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Personnel Identity</th>
-                        <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Email Access</th>
-                        <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Authorization Level</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {helpers.map(h => (
-                        <tr key={h.id} className="hover:bg-slate-50 transition-colors group">
-                          <td className="px-10 py-8">
-                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400">
-                                  {h.profilePicture ? <img src={h.profilePicture} className="w-full h-full object-cover rounded-2xl" /> : <UserIcon size={20} />}
-                                </div>
-                                <span className="font-black text-slate-900 text-sm leading-tight">{h.name} {h.email === 'kennytohne@gmail.com' && <Sparkles size={12} className="text-blue-500 inline ml-1" />}</span>
-                             </div>
-                          </td>
-                          <td className="px-10 py-8 text-sm text-slate-400 font-bold">{h.email}</td>
-                          <td className="px-10 py-8">
-                             <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${h.role === 'admin' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-slate-100 text-slate-600'}`}>
-                               {h.role === 'admin' ? 'Regional Lead' : 'Field Helper'}
-                             </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="bg-white rounded-[3rem] shadow-sm border border-slate-200 overflow-hidden">
-                  <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Volunteer Identity</th>
-                        <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Contact Info</th>
-                        <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Interests</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {volunteers.length > 0 ? volunteers.map(v => (
-                        <tr key={v.id} className="hover:bg-slate-50 transition-colors group">
-                          <td className="px-10 py-8">
-                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center font-black">V</div>
-                                <span className="font-black text-slate-900 text-sm leading-tight">{v.firstName} {v.lastName}</span>
-                             </div>
-                          </td>
-                          <td className="px-10 py-8 text-sm text-slate-400 font-bold">{v.email}</td>
-                          <td className="px-10 py-8">
-                             <div className="flex flex-wrap gap-2">
-                               {v.interests.map((int, i) => (
-                                 <span key={i} className="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase rounded">{int}</span>
-                               ))}
-                             </div>
-                          </td>
-                        </tr>
-                      )) : (
-                        <tr>
-                          <td colSpan={3} className="px-10 py-20 text-center">
-                            <div className="flex flex-col items-center gap-4 text-slate-400">
-                              <HandHelping size={48} />
-                              <p className="font-black text-xs uppercase tracking-widest">No field volunteers registered yet</p>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
-
-          {tab === 'wallet' && isAdmin && (
-            <div className="space-y-12 animate-in fade-in duration-700">
-               <div className="flex justify-between items-center border-b border-slate-200 pb-10">
-                <div>
-                  <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none">Strategic Ledger</h1>
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-2">Authorized Cloud Financial Oversight</p>
-                </div>
-                <div className="flex gap-4">
-                  <button onClick={() => { setCheckoutType('Income'); setIsCheckoutModalOpen(true); }} className="px-6 py-4 bg-green-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-green-700 shadow-xl transition-all">
-                    <Plus size={18} /> Log Intake
-                  </button>
-                  <button onClick={() => { setCheckoutType('Expense'); setIsCheckoutModalOpen(true); }} className="px-6 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-black shadow-xl transition-all">
-                    <Plus size={18} /> Log Outflow
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm relative overflow-hidden group">
-                   <div className="relative z-10">
-                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Net Operational Assets</p>
-                     <p className="text-5xl font-black text-slate-900">${(stats.totalRevenue - stats.totalExpenses).toLocaleString()}</p>
-                   </div>
-                   <div className="absolute top-0 right-0 p-8 text-blue-50 group-hover:text-blue-100 transition-colors">
-                      <Wallet size={80} strokeWidth={1} />
-                   </div>
-                </div>
-                <div className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm">
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Cumulative Intake</p>
-                   <p className="text-5xl font-black text-green-600">${stats.totalRevenue.toLocaleString()}</p>
-                </div>
-                <div className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm">
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Cumulative Burn</p>
-                   <p className="text-5xl font-black text-red-500">${stats.totalExpenses.toLocaleString()}</p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-[3rem] border border-slate-200 shadow-sm overflow-hidden">
-                 <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Timestamp</th>
-                        <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Entity / Purpose</th>
-                        <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest text-right">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 font-bold text-sm">
-                       {unifiedLedger.map((item: any, idx) => (
-                         <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                           <td className="px-10 py-8 text-xs text-slate-400">{item.date}</td>
-                           <td className="px-10 py-8">
-                             <div className="font-black text-slate-900 leading-tight">{item.name || item.description}</div>
-                             <div className="text-[10px] font-black uppercase text-slate-400 tracking-tighter mt-1">{item.source || item.category}</div>
-                           </td>
-                           <td className={`px-10 py-8 text-right font-black text-lg ${item.type === 'Income' ? 'text-green-600' : 'text-red-500'}`}>
-                             {item.type === 'Income' ? '+' : '-'}${item.amount.toLocaleString()}
-                           </td>
-                         </tr>
-                       ))}
-                    </tbody>
-                 </table>
-              </div>
-            </div>
-          )}
-
-          {tab === 'users' && isAdmin && (
-            <div className="space-y-12 animate-in fade-in duration-700">
-               <div className="flex justify-between items-center border-b border-slate-200 pb-10">
-                <div>
-                  <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none">Personnel Directory</h1>
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-2">Access Authorization Ledger</p>
-                </div>
-                {isRootAdmin && (
-                  <button onClick={() => setIsRegisterModalOpen(true)} className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-blue-700 shadow-xl transition-all">
-                    <UserPlus size={18} /> Provision Staff
-                  </button>
-                )}
-              </div>
-
-              <div className="bg-white rounded-[3rem] shadow-sm border border-slate-200 overflow-hidden">
+              <div className="bg-white rounded-[4rem] shadow-sm border border-slate-200 overflow-hidden">
                 <table className="w-full text-left">
-                  <thead className="bg-slate-50 border-b border-slate-200">
+                  <thead className="bg-slate-50/50 border-b border-slate-200">
                     <tr>
-                      <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Personnel Identity</th>
-                      <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Email Access</th>
-                      <th className="px-10 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Authorization Level</th>
+                      <th className="px-12 py-8 text-[10px] font-black uppercase text-slate-400 tracking-[0.25em]">Transmission</th>
+                      <th className="px-12 py-8 text-[10px] font-black uppercase text-slate-400 tracking-[0.25em]">Region / Category</th>
+                      <th className="px-12 py-8 text-right text-[10px] font-black uppercase text-slate-400 tracking-[0.25em]">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {helpers.map(h => (
-                      <tr key={h.id} className="hover:bg-slate-50 transition-colors group">
-                        <td className="px-10 py-8">
-                           <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400">
-                                {h.profilePicture ? <img src={h.profilePicture} className="w-full h-full object-cover rounded-2xl" /> : <UserIcon size={20} />}
-                              </div>
-                              <span className="font-black text-slate-900 text-sm leading-tight">{h.name} {h.email === 'kennytohne@gmail.com' && <Sparkles size={12} className="text-blue-500 inline ml-1" />}</span>
-                           </div>
+                    {(contentSubTab === 'All' || contentSubTab === 'News') && news.map(n => (
+                      <tr key={n.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-12 py-8 font-black text-slate-900 uppercase tracking-tighter text-sm flex items-center gap-4">
+                           <div className="w-10 h-10 rounded-lg bg-blue-50 overflow-hidden"><img src={n.image} className="w-full h-full object-cover" /></div>
+                           {n.title}
                         </td>
-                        <td className="px-10 py-8 text-sm text-slate-400 font-bold">{h.email}</td>
-                        <td className="px-10 py-8">
-                           <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${h.role === 'admin' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-slate-100 text-slate-600'}`}>
-                             {h.role === 'admin' ? 'Regional Lead' : 'Field Helper'}
-                           </span>
+                        <td className="px-12 py-8 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{n.category} • {n.date}</td>
+                        <td className="px-12 py-8 text-right flex justify-end gap-2">
+                          <button onClick={() => handleEdit('News', n)} className="p-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all"><Edit2 size={16} /></button>
+                          <button onClick={() => handleConfirmDeleteNews(n.id, n.title)} className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all"><Trash2 size={16} /></button>
+                        </td>
+                      </tr>
+                    ))}
+                    {(contentSubTab === 'All' || contentSubTab === 'Projects') && projects.map(p => (
+                      <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-12 py-8 font-black text-slate-900 uppercase tracking-tighter text-sm flex items-center gap-4">
+                           <div className="w-10 h-10 rounded-lg bg-amber-50 overflow-hidden"><img src={p.image} className="w-full h-full object-cover" /></div>
+                           {p.title}
+                        </td>
+                        <td className="px-12 py-8 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{p.region} • {p.field}</td>
+                        <td className="px-12 py-8 text-right flex justify-end gap-2">
+                          <Link to={`/dashboard/project/${p.id}`} className="p-3 bg-slate-900 text-white rounded-xl hover:bg-blue-600 transition-all text-[9px] font-black uppercase px-4 flex items-center gap-2"><Target size={14}/> Sync</Link>
+                          <button onClick={() => handleEdit('Projects', p)} className="p-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all"><Edit2 size={16} /></button>
+                          <button onClick={() => handleConfirmDeleteProject(p.id, p.title)} className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all"><Trash2 size={16} /></button>
+                        </td>
+                      </tr>
+                    ))}
+                    {(contentSubTab === 'All' || contentSubTab === 'Images') && gallery.map(g => (
+                      <tr key={g.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-12 py-8 font-black text-slate-900 uppercase tracking-tighter text-sm flex items-center gap-4">
+                           <div className="w-10 h-10 rounded-lg bg-purple-50 overflow-hidden"><img src={g.img} className="w-full h-full object-cover" /></div>
+                           {g.title}
+                        </td>
+                        <td className="px-12 py-8 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Visual Log • {g.subtitle}</td>
+                        <td className="px-12 py-8 text-right flex justify-end gap-2">
+                          <button onClick={() => handleEdit('Images', g)} className="p-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all"><Edit2 size={16} /></button>
+                          <button onClick={() => deleteImage(g.id)} className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all"><Trash2 size={16} /></button>
                         </td>
                       </tr>
                     ))}
@@ -711,98 +337,249 @@ export const Dashboard = () => {
               </div>
             </div>
           )}
-          
-          {tab === 'profile' && (
-            <div className="max-w-4xl animate-in fade-in duration-700">
-              <div className="bg-white rounded-[3rem] shadow-sm border border-slate-200 overflow-hidden">
-                <div className="h-44 bg-slate-900 relative">
-                   <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-transparent"></div>
+
+          {/* VOLUNTEERS TAB */}
+          {tab === 'volunteers' && (
+            <div className="space-y-12 animate-in fade-in duration-700">
+               <div>
+                  <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none">Field Volunteers</h1>
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mt-4">Active Human Capital Registry</p>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                 {volunteers.map(v => (
+                   <div key={v.id} className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm hover:shadow-2xl transition-all group">
+                     <div className="flex items-center gap-4 mb-8">
+                       <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center font-black text-2xl uppercase">
+                         {v.firstName?.[0] || '?'}{v.lastName?.[0] || '?'}
+                       </div>
+                       <div>
+                         <h3 className="text-xl font-black text-slate-900">{v.firstName} {v.lastName}</h3>
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{v.country}</p>
+                       </div>
+                     </div>
+                     <div className="text-[11px] font-bold text-slate-500 mb-8"><Mail size={14} className="inline mr-2 text-blue-500" /> {v.email}</div>
+                     <button className="w-full py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl">Contact Agent</button>
+                   </div>
+                 ))}
+               </div>
+            </div>
+          )}
+
+          {/* WALLET TAB (ADMIN ONLY) */}
+          {tab === 'wallet' && isAdmin && (
+            <div className="space-y-12 animate-in fade-in duration-700">
+               <div className="flex flex-col md:flex-row justify-between md:items-center gap-8 border-b border-slate-200 pb-12">
+                <div>
+                  <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none">Financial Control</h1>
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mt-4">Mission Resource Governance</p>
                 </div>
-                <div className="px-12 pb-16 -mt-24 relative z-10">
-                  <div className="flex flex-col md:flex-row items-end gap-10 mb-12">
-                    <div className="w-44 h-44 rounded-[2.8rem] bg-white p-2 shadow-2xl relative group overflow-hidden border-2 border-slate-100 flex items-center justify-center">
-                      {currentUser.profilePicture ? (
-                         <img src={currentUser.profilePicture} className="w-full h-full object-cover rounded-[2.5rem]" alt="Profile" />
-                      ) : (
-                         <div className="w-full h-full rounded-[2.5rem] bg-slate-50 flex items-center justify-center text-slate-200 font-black text-6xl">
-                           {currentUser.name.charAt(0)}
-                         </div>
-                      )}
-                      <button onClick={() => fileInputRef.current?.click()} className="absolute inset-0 bg-slate-900/60 text-white opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center gap-2">
-                        <Camera size={36} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Update Portrait</span>
-                      </button>
-                      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => updateCurrentProfile({ profilePicture: reader.result as string });
-                          reader.readAsDataURL(file);
-                        }
-                      }} />
-                    </div>
-                    <div className="flex-grow pb-6">
-                      <div className="flex items-center gap-4 mb-3">
-                        <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none">{currentUser.name}</h2>
-                        <span className="px-5 py-2 bg-slate-900 text-white text-[10px] font-black uppercase rounded-full shadow-lg">{currentUser.role}</span>
-                      </div>
-                      <p className="text-slate-400 font-bold uppercase tracking-widest text-xs flex items-center gap-2 italic"><Mail size={14} className="text-blue-500" /> {currentUser.email}</p>
-                    </div>
-                    <button onClick={() => setIsEditingProfile(!isEditingProfile)} className="px-10 py-4 border-2 border-slate-200 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all mb-4 active:scale-95">
-                       {isEditingProfile ? 'Cancel Edit' : 'Modify Record'}
-                    </button>
-                  </div>
-                  
-                  {isEditingProfile ? (
-                    <form onSubmit={handleProfileUpdate} className="space-y-8 animate-in slide-in-from-top-4 duration-500">
-                      <div className="grid grid-cols-1 gap-8">
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Legal Identity Alias</label>
-                          <input required type="text" value={editedName} onChange={(e) => setEditedName(e.target.value)} className="w-full px-6 py-5 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xl focus:ring-4 focus:ring-blue-500/10" />
+                <div className="flex gap-4">
+                  <button onClick={() => { setSelectedCreateType('Intake'); setCreationStep('form'); setIsModalOpen(true); }} className="px-8 py-4 bg-green-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-green-700 shadow-xl transition-all">
+                    <ArrowUpRight size={18} /> Log Intake
+                  </button>
+                  <button onClick={() => { setSelectedCreateType('Withdrawal'); setCreationStep('form'); setIsModalOpen(true); }} className="px-8 py-4 bg-red-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-red-700 shadow-xl transition-all">
+                    <ArrowDownRight size={18} /> Authorize Burn
+                  </button>
+                </div>
+              </div>
+
+              {/* Financial Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+                   <div className="flex justify-between items-start mb-6">
+                      <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl"><Landmark size={24} /></div>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">Available Liquidity</span>
+                   </div>
+                   <div className="text-4xl font-black text-slate-900 tracking-tighter mb-2">${(stats.totalRevenue - stats.totalExpenses).toLocaleString()}</div>
+                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Net Regional Treasury</div>
+                   <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000"></div>
+                </div>
+
+                <div className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+                   <div className="flex justify-between items-start mb-6">
+                      <div className="p-4 bg-green-50 text-green-600 rounded-2xl"><ArrowUpRight size={24} /></div>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-green-400 bg-green-50 px-3 py-1 rounded-full">Intake History</span>
+                   </div>
+                   <div className="text-4xl font-black text-slate-900 tracking-tighter mb-2">${stats.totalRevenue.toLocaleString()}</div>
+                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gross Contributions Received</div>
+                   <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000"></div>
+                </div>
+
+                <div className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+                   <div className="flex justify-between items-start mb-6">
+                      <div className="p-4 bg-red-50 text-red-600 rounded-2xl"><ArrowDownRight size={24} /></div>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-red-400 bg-red-50 px-3 py-1 rounded-full">Operational Burn</span>
+                   </div>
+                   <div className="text-4xl font-black text-slate-900 tracking-tighter mb-2">${stats.totalExpenses.toLocaleString()}</div>
+                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Mission Withdrawals</div>
+                   <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000"></div>
+                </div>
+              </div>
+
+              {/* Wallet Sub-Tabs */}
+              <div className="flex items-center gap-3 p-2 bg-slate-100 rounded-[1.5rem] w-fit">
+                {[
+                  { id: 'overview', label: 'Summary', icon: <History size={14}/> },
+                  { id: 'intake', label: 'Intake Log', icon: <CreditCard size={14}/> },
+                  { id: 'withdrawals', label: 'Burn Log', icon: <Receipt size={14}/> }
+                ].map((sub) => (
+                  <button key={sub.id} onClick={() => setWalletSubTab(sub.id as any)} className={`px-10 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${walletSubTab === sub.id ? 'bg-white text-blue-600 shadow-xl' : 'text-slate-500 hover:text-slate-700'}`}>
+                    {sub.icon} {sub.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Ledger Table */}
+              <div className="bg-white rounded-[4rem] border border-slate-200 shadow-sm overflow-hidden">
+                 {walletSubTab === 'overview' && (
+                   <div className="p-10 space-y-12">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        {/* Recent Income mini list */}
+                        <div className="space-y-6">
+                           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] pl-2">Recent Regional Intake</h4>
+                           <div className="space-y-4">
+                             {donations.slice(0, 5).map(d => (
+                               <div key={d.id} className="p-6 bg-slate-50 rounded-2xl flex justify-between items-center group hover:bg-green-50 transition-all">
+                                  <div className="flex items-center gap-4">
+                                     <div className="p-3 bg-white text-green-600 rounded-xl shadow-sm"><ArrowUpRight size={16}/></div>
+                                     <div>
+                                        <div className="text-xs font-black text-slate-900 uppercase tracking-tight">{d.name}</div>
+                                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{d.source} • {d.date}</div>
+                                     </div>
+                                  </div>
+                                  <div className="text-lg font-black text-green-600 tracking-tighter">+${d.amount.toLocaleString()}</div>
+                               </div>
+                             ))}
+                           </div>
+                           <button onClick={() => setWalletSubTab('intake')} className="text-[10px] font-black text-blue-600 uppercase tracking-widest pl-2 hover:underline">View Full Intake History →</button>
+                        </div>
+
+                        {/* Recent Burn mini list */}
+                        <div className="space-y-6">
+                           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] pl-2">Authorized Operational Burn</h4>
+                           <div className="space-y-4">
+                             {expenses.slice(0, 5).map(e => (
+                               <div key={e.id} className="p-6 bg-slate-50 rounded-2xl flex justify-between items-center group hover:bg-red-50 transition-all">
+                                  <div className="flex items-center gap-4">
+                                     <div className="p-3 bg-white text-red-600 rounded-xl shadow-sm"><ArrowDownRight size={16}/></div>
+                                     <div>
+                                        <div className="text-xs font-black text-slate-900 uppercase tracking-tight">{e.recipient}</div>
+                                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{e.category} • {e.date}</div>
+                                     </div>
+                                  </div>
+                                  <div className="text-lg font-black text-red-600 tracking-tighter">-${e.amount.toLocaleString()}</div>
+                               </div>
+                             ))}
+                           </div>
+                           <button onClick={() => setWalletSubTab('withdrawals')} className="text-[10px] font-black text-blue-600 uppercase tracking-widest pl-2 hover:underline">View Full Burn History →</button>
                         </div>
                       </div>
-                      <button type="submit" className="px-12 py-5 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-blue-500/30 hover:bg-blue-700 transition-all flex items-center gap-3">
-                         <Save size={20} /> Deploy Intelligence Update
-                      </button>
-                    </form>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                       <div className="p-10 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex flex-col justify-center">
-                          <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.25em] mb-4">Security Clearance</h4>
-                          <div className="flex items-center gap-5">
-                             <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm border border-slate-100"><ShieldCheck size={28} /></div>
-                             <p className="text-sm font-black text-slate-900">Multi-Factor Cloud Verified</p>
-                          </div>
-                       </div>
-                       <div className="p-10 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex flex-col justify-center">
-                          <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.25em] mb-4">Mission Assignment</h4>
-                          <div className="flex items-center gap-5">
-                             <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-green-600 shadow-sm border border-slate-100"><Globe size={28} /></div>
-                             <p className="text-sm font-black text-slate-900">Regional Coordination Hub</p>
-                          </div>
-                       </div>
-                    </div>
-                  )}
+                   </div>
+                 )}
 
-                  {isRootAdmin && (
-                    <div className="mt-20 pt-16 border-t border-slate-100">
-                       <h4 className="text-[10px] font-black uppercase text-red-500 tracking-[0.3em] mb-8">System Maintenance Protocol</h4>
-                       <div className="p-12 bg-red-50 rounded-[3.5rem] border border-red-100 space-y-8">
-                          <div className="flex items-start gap-5">
-                            <AlertCircle className="text-red-500 shrink-0 mt-1" size={24} />
-                            <div className="space-y-2">
-                               <p className="text-lg font-black text-red-900 leading-tight">Hard Cache Purge Terminal</p>
-                               <p className="text-xs text-red-600 font-bold leading-relaxed uppercase">
-                                 Executing this directive will purge all local data syncs and terminate active staff sessions across the regional network.
-                               </p>
-                            </div>
-                          </div>
-                          <button onClick={() => { if(confirm("Executing hard purge?")) resetDatabase(); }} className="px-10 py-5 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-red-600/30 hover:bg-red-700 transition-all flex items-center gap-3">
-                             <RefreshCw size={20} /> Execute Terminal Purge
-                          </button>
+                 {walletSubTab === 'intake' && (
+                    <table className="w-full text-left">
+                       <thead className="bg-slate-50/50 border-b border-slate-200">
+                          <tr>
+                             <th className="px-12 py-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">Donor Identity</th>
+                             <th className="px-12 py-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">Ingress Method</th>
+                             <th className="px-12 py-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">Operational Date</th>
+                             <th className="px-12 py-8 text-right text-[10px] font-black uppercase text-slate-400 tracking-widest">Liquidity</th>
+                          </tr>
+                       </thead>
+                       <tbody className="divide-y divide-slate-50">
+                          {donations.map(d => (
+                            <tr key={d.id} className="hover:bg-slate-50 transition-colors">
+                               <td className="px-12 py-6 font-black text-slate-900 uppercase text-xs tracking-tight">{d.name}</td>
+                               <td className="px-12 py-6">
+                                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-white border border-slate-200 px-3 py-1 rounded-full">{d.source}</span>
+                               </td>
+                               <td className="px-12 py-6 text-xs text-slate-400 font-bold uppercase">{d.date}</td>
+                               <td className="px-12 py-6 text-right font-black text-green-600 text-lg tracking-tighter">+${d.amount.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                       </tbody>
+                    </table>
+                 )}
+
+                 {walletSubTab === 'withdrawals' && (
+                    <table className="w-full text-left">
+                       <thead className="bg-slate-50/50 border-b border-slate-200">
+                          <tr>
+                             <th className="px-12 py-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">Recipient Agency</th>
+                             <th className="px-12 py-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">Cost Center</th>
+                             <th className="px-12 py-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">Authorization Date</th>
+                             <th className="px-12 py-8 text-right text-[10px] font-black uppercase text-slate-400 tracking-widest">Liquidity Burn</th>
+                          </tr>
+                       </thead>
+                       <tbody className="divide-y divide-slate-50">
+                          {expenses.map(e => (
+                            <tr key={e.id} className="hover:bg-slate-50 transition-colors">
+                               <td className="px-12 py-6 font-black text-slate-900 uppercase text-xs tracking-tight">{e.recipient}</td>
+                               <td className="px-12 py-6">
+                                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-white border border-slate-200 px-3 py-1 rounded-full">{e.category}</span>
+                               </td>
+                               <td className="px-12 py-6 text-xs text-slate-400 font-bold uppercase">{e.date}</td>
+                               <td className="px-12 py-6 text-right font-black text-red-600 text-lg tracking-tighter">-${e.amount.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                       </tbody>
+                    </table>
+                 )}
+              </div>
+            </div>
+          )}
+
+          {/* STAFF HUB TAB (ADMIN ONLY) */}
+          {tab === 'staff' && isAdmin && (
+            <div className="space-y-12 animate-in fade-in duration-700">
+               <div className="flex flex-col md:flex-row justify-between md:items-center gap-8 border-b border-slate-200 pb-12">
+                  <div>
+                    <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none">Staff Registry</h1>
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mt-4">Authorized Regional Personnel</p>
+                  </div>
+                  <button onClick={() => setCreationStep('form')} className="px-10 py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-black shadow-2xl transition-all">
+                    <Plus size={20} /> Onboard Personnel
+                  </button>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                 {helpers.map(h => (
+                   <div key={h.id} className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm relative group">
+                     <div className="flex items-center gap-5 mb-8">
+                       <img src={h.profilePicture || `https://ui-avatars.com/api/?name=${h.name}`} className="w-16 h-16 rounded-full border-4 border-slate-50" />
+                       <div>
+                         <h3 className="text-xl font-black text-slate-900 tracking-tight">{h.name}</h3>
+                         <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${h.role === 'admin' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}`}>{h.role} Agent</span>
                        </div>
-                    </div>
-                  )}
+                     </div>
+                     <div className="text-[11px] font-bold text-slate-400 flex items-center gap-2 mb-10"><Mail size={14} className="text-blue-500" /> {h.email}</div>
+                     <div className="flex gap-4">
+                        <button className="flex-grow py-3.5 bg-slate-50 text-[10px] font-black uppercase text-slate-600 rounded-xl hover:bg-slate-100 transition-all border border-slate-100">Review Logs</button>
+                        <button onClick={() => updateUser(h.id, { role: h.role === 'admin' ? 'helper' : 'admin' })} className="p-3.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all"><Zap size={16} /></button>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+            </div>
+          )}
+
+          {/* PROFILE TAB */}
+          {tab === 'profile' && (
+            <div className="animate-in fade-in duration-700 flex justify-center">
+              <div className="max-w-2xl w-full bg-white p-16 rounded-[4rem] border border-slate-200 shadow-2xl text-center">
+                <img src={currentUser.profilePicture || `https://ui-avatars.com/api/?name=${currentUser.name}`} className="w-40 h-40 rounded-[3rem] mx-auto mb-10 border-8 border-slate-50" />
+                <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">{currentUser.name}</h2>
+                <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] mt-4 mb-12">{currentUser.role} Clearances Active</p>
+                <div className="space-y-4 text-left">
+                  <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID Reference</span>
+                    <span className="font-bold text-slate-900">{currentUser.id}</span>
+                  </div>
+                  <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email</span>
+                    <span className="font-bold text-slate-900">{currentUser.email}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -810,170 +587,188 @@ export const Dashboard = () => {
         </main>
       </div>
 
-      {/* CREATE INTELLIGENCE MODAL */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsCreateModalOpen(false)}></div>
-          <div className="relative bg-white w-full max-w-2xl rounded-[3.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+      {/* COMPREHENSIVE ASSET MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-xl" onClick={() => setIsModalOpen(false)}></div>
+          <div className="relative bg-white w-full max-w-3xl rounded-[4rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
             <div className="p-10 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-              <div>
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Deploy Intelligence</h3>
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Authorized Field Publication</p>
-              </div>
-              <button onClick={() => setIsCreateModalOpen(false)} className="p-4 text-slate-400 hover:bg-slate-200 rounded-full transition-colors"><X size={28} /></button>
+              <h3 className="text-3xl font-black text-slate-900 tracking-tighter uppercase leading-none">{editingId ? 'Modify Intel' : (selectedCreateType ? `Record ${selectedCreateType}` : 'Deploy Update')}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-4 text-slate-400 hover:bg-white hover:text-red-500 rounded-2xl transition-all"><X size={32} /></button>
             </div>
             
             {creationStep === 'select' ? (
-              <div className="p-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-16 grid grid-cols-2 lg:grid-cols-3 gap-8">
                  {[
-                   { type: 'News', icon: <FileText size={32} />, color: 'bg-blue-50 text-blue-600', desc: 'Field news update' },
-                   { type: 'Projects', icon: <Target size={32} />, color: 'bg-amber-50 text-amber-600', desc: 'Regional mission' },
-                   { type: 'Images', icon: <ImageIcon size={32} />, color: 'bg-purple-50 text-purple-600', desc: 'Visual testimony' },
-                   { type: 'Events', icon: <Calendar size={32} />, color: 'bg-green-50 text-green-600', desc: 'Field gathering' }
-                 ].map(opt => (
-                   <button key={opt.type} onClick={() => { setSelectedCreateType(opt.type as any); setCreationStep('form'); }} className="p-8 border-2 border-slate-100 rounded-[2rem] hover:border-blue-500 hover:bg-blue-50 transition-all flex flex-col items-center text-center group">
-                      <div className={`p-4 rounded-2xl mb-4 group-hover:scale-110 transition-transform ${opt.color}`}>{opt.icon}</div>
-                      <h4 className="font-black text-slate-900 text-xs uppercase tracking-widest">{opt.type}</h4>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 tracking-tighter">{opt.desc}</p>
+                   { type: 'News', icon: <FileText size={36} />, color: 'bg-blue-50 text-blue-600', desc: 'Regional News' },
+                   { type: 'Projects', icon: <Target size={36} />, color: 'bg-amber-50 text-amber-600', desc: 'Field Mission' },
+                   { type: 'Images', icon: <ImageIcon size={36} />, color: 'bg-purple-50 text-purple-600', desc: 'Visual Log' },
+                   { type: 'Intake', icon: <ArrowUpRight size={36} />, color: 'bg-green-50 text-green-600', desc: 'Financial Intake', adminOnly: true },
+                   { type: 'Withdrawal', icon: <ArrowDownRight size={36} />, color: 'bg-red-50 text-red-600', desc: 'Mission Expense', adminOnly: true },
+                 ]
+                 .filter(opt => !opt.adminOnly || isAdmin)
+                 .map(opt => (
+                   <button key={opt.type} onClick={() => { setSelectedCreateType(opt.type as any); setCreationStep('form'); }} className="p-10 border-4 border-slate-50 rounded-[3rem] hover:border-blue-600 hover:bg-blue-50 transition-all flex flex-col items-center group active:scale-95">
+                      <div className={`p-6 rounded-[2rem] mb-6 shadow-sm ${opt.color}`}>{opt.icon}</div>
+                      <h4 className="font-black text-slate-900 text-sm uppercase tracking-widest">{opt.type}</h4>
+                      <p className="text-[9px] font-bold text-slate-400 mt-2 uppercase">{opt.desc}</p>
                    </button>
                  ))}
               </div>
             ) : (
-              <form onSubmit={handlePublicationSubmit} className="p-12 space-y-6 max-h-[70vh] overflow-y-auto no-scrollbar">
-                <button type="button" onClick={() => setCreationStep('select')} className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2 mb-4"><ChevronLeft size={14} /> Back to Selection</button>
-                
+              <form onSubmit={handleFormSubmit} className="p-12 space-y-8 max-h-[75vh] overflow-y-auto no-scrollbar">
                 <div className="space-y-6">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Title</label>
-                    <input required type="text" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm" value={publicationForm.title} onChange={e => setPublicationForm({...publicationForm, title: e.target.value})} />
-                  </div>
-
-                  {selectedCreateType === 'Events' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Date</label>
-                        <input required type="date" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm" value={publicationForm.date} onChange={e => setPublicationForm({...publicationForm, date: e.target.value})} />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Location</label>
-                        <input required type="text" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm" placeholder="Location details" value={publicationForm.location} onChange={e => setPublicationForm({...publicationForm, location: e.target.value})} />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Start Time</label>
-                        <input required type="time" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm" value={publicationForm.startTime} onChange={e => setPublicationForm({...publicationForm, startTime: e.target.value})} />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">End Time</label>
-                        <input required type="time" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm" value={publicationForm.endTime} onChange={e => setPublicationForm({...publicationForm, endTime: e.target.value})} />
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedCreateType !== 'Events' && (
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest block">Visual Identity</label>
-                      <div className="flex flex-col sm:flex-row gap-4 items-center">
-                        <button type="button" onClick={() => uploadInputRef.current?.click()} className="px-6 py-4 border-2 border-dashed border-slate-200 rounded-2xl flex items-center gap-3 text-[10px] font-black uppercase text-slate-400 hover:border-blue-400 hover:text-blue-600 transition-all flex-grow justify-center">
-                           <Upload size={16} /> Upload Local Image
-                        </button>
-                        <input type="file" ref={uploadInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
-                        <span className="text-[10px] font-black text-slate-300 uppercase">OR</span>
-                        <input type="text" className="px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-bold outline-none flex-grow" placeholder="External URL" value={publicationForm.image || publicationForm.img} onChange={e => setPublicationForm({...publicationForm, image: e.target.value, img: e.target.value})} />
-                      </div>
-                      {(publicationForm.image || publicationForm.img) && (
-                        <div className="h-32 w-full rounded-2xl overflow-hidden border border-slate-100">
-                           <img src={publicationForm.image || publicationForm.img} className="w-full h-full object-cover" />
+                   {/* SHARED FIELDS FOR CONTENT */}
+                   {(['News', 'Projects', 'Images'].includes(selectedCreateType as any)) && (
+                     <>
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Asset Identity (Title)</label>
+                           <input required type="text" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-lg" placeholder="Mission / News Title" value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
                         </div>
-                      )}
-                    </div>
-                  )}
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Description / Details</label>
-                    <textarea rows={4} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium text-sm" placeholder="Detailed briefing..." value={publicationForm.excerpt || publicationForm.description} onChange={e => setPublicationForm({...publicationForm, excerpt: e.target.value, description: e.target.value})} />
-                  </div>
+                        {selectedCreateType === 'Projects' && (
+                          <div className="grid grid-cols-2 gap-6">
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-slate-400">Target Region</label>
+                                <input required type="text" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" placeholder="e.g. Bangui, CAR" value={form.region} onChange={e => setForm({...form, region: e.target.value})} />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-slate-400">Operational Field</label>
+                                <select className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" value={form.field} onChange={e => setForm({...form, field: e.target.value})}>
+                                    <option>Health</option><option>Education</option><option>Protection</option><option>Economic</option><option>Peace</option>
+                                </select>
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-slate-400">Duration</label>
+                                <input required type="text" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" placeholder="12 Months" value={form.duration} onChange={e => setForm({...form, duration: e.target.value})} />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-slate-400">Beneficiaries</label>
+                                <input required type="text" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" placeholder="500+ Women" value={form.beneficiaries} onChange={e => setForm({...form, beneficiaries: e.target.value})} />
+                              </div>
+                              <div className="space-y-2 col-span-2">
+                                <label className="text-[10px] font-black uppercase text-slate-400">Strategic Purpose</label>
+                                <textarea rows={2} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-medium" placeholder="Describe the core mission purpose..." value={form.purpose} onChange={e => setForm({...form, purpose: e.target.value})} />
+                              </div>
+                          </div>
+                        )}
+
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Transmission Description</label>
+                           <textarea rows={4} className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[2rem] outline-none font-medium text-sm" placeholder="Detailed content..." value={form.description || form.excerpt} onChange={e => setForm({...form, description: e.target.value, excerpt: e.target.value})} />
+                        </div>
+
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Operational Visual</label>
+                           <div onClick={() => uploadInputRef.current?.click()} className="w-full h-40 border-4 border-dashed border-slate-100 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 overflow-hidden">
+                              {(form.image || form.img) ? <img src={form.image || form.img} className="w-full h-full object-cover" /> : <Upload className="text-slate-300" size={32} />}
+                           </div>
+                           <input type="file" ref={uploadInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
+                        </div>
+                     </>
+                   )}
+
+                   {/* FINANCIAL INTAKE FORM */}
+                   {selectedCreateType === 'Intake' && (
+                     <>
+                        <div className="space-y-6">
+                           <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Liquidity Amount ($)</label>
+                              <div className="relative">
+                                 <DollarSign className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={24} />
+                                 <input required type="number" className="w-full pl-16 pr-6 py-5 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-3xl text-green-600" placeholder="0.00" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
+                              </div>
+                           </div>
+                           <div className="grid grid-cols-2 gap-6">
+                              <div className="space-y-2">
+                                 <label className="text-[10px] font-black uppercase text-slate-400">Donor / Agency Identity</label>
+                                 <input required type="text" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" placeholder="e.g. UN Women" value={form.donorName} onChange={e => setForm({...form, donorName: e.target.value})} />
+                              </div>
+                              <div className="space-y-2">
+                                 <label className="text-[10px] font-black uppercase text-slate-400">Ingress Channel</label>
+                                 <select className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" value={form.source} onChange={e => setForm({...form, source: e.target.value})}>
+                                    <option>Manual Entry</option>
+                                    <option>Wire Transfer</option>
+                                    <option>Mobile Money</option>
+                                    <option>Grant Settlement</option>
+                                    <option>Offline Donation</option>
+                                 </select>
+                              </div>
+                           </div>
+                        </div>
+                     </>
+                   )}
+
+                   {/* FINANCIAL WITHDRAWAL FORM */}
+                   {selectedCreateType === 'Withdrawal' && (
+                     <>
+                        <div className="space-y-6">
+                           <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Liquidity Burn ($)</label>
+                              <div className="relative">
+                                 <DollarSign className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={24} />
+                                 <input required type="number" className="w-full pl-16 pr-6 py-5 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-3xl text-red-600" placeholder="0.00" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
+                              </div>
+                           </div>
+                           <div className="grid grid-cols-2 gap-6">
+                              <div className="space-y-2">
+                                 <label className="text-[10px] font-black uppercase text-slate-400">Recipient Entity</label>
+                                 <input required type="text" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" placeholder="e.g. Logistics Provider" value={form.recipient} onChange={e => setForm({...form, recipient: e.target.value})} />
+                              </div>
+                              <div className="space-y-2">
+                                 <label className="text-[10px] font-black uppercase text-slate-400">Cost Center</label>
+                                 <select className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
+                                    <option>Operational</option>
+                                    <option>Medical Supplies</option>
+                                    <option>Field Logistics</option>
+                                    <option>Staff Stipends</option>
+                                    <option>Strategic Growth</option>
+                                    <option>Legal & Admin</option>
+                                 </select>
+                              </div>
+                           </div>
+                           <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase text-slate-400">Authorization Rationale</label>
+                              <textarea rows={3} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-medium text-sm" placeholder="Why is this burn being authorized?" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+                           </div>
+                        </div>
+                     </>
+                   )}
+                   
+                   <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl">Authorize Deployment</button>
                 </div>
-
-                <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-[1.8rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-black transition-all">Publish to Network</button>
               </form>
             )}
           </div>
         </div>
       )}
 
-      {/* STAFF PROVISIONING (Root Only) */}
-      {isRegisterModalOpen && isRootAdmin && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsRegisterModalOpen(false)}></div>
-          <div className="relative bg-white w-full max-w-lg rounded-[3.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
-            <div className="p-12 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-              <div>
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Provision Personnel</h3>
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Assign Regional Hub Authorization</p>
-              </div>
-              <button onClick={() => setIsRegisterModalOpen(false)} className="p-4 text-slate-400 hover:bg-slate-200 rounded-full transition-colors"><X size={28} /></button>
-            </div>
-            <form onSubmit={handleStaffRegister} className="p-12 space-y-10">
-               <div className="space-y-3">
-                 <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Legal Personnel Name</label>
-                 <input required type="text" className="w-full px-6 py-5 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-lg" value={registerForm.name} onChange={(e) => setRegisterForm({...registerForm, name: e.target.value})} />
-               </div>
-               <div className="space-y-3">
-                 <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">A.P.D.F.E Identity Email</label>
-                 <input required type="email" className="w-full px-6 py-5 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-lg" value={registerForm.email} onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})} />
-               </div>
-               <div className="space-y-4">
-                 <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Clearance Authorization Level</label>
-                 <div className="flex gap-4">
-                   {['helper', 'admin'].map(r => (
-                     <button key={r} type="button" onClick={() => setRegisterForm({...registerForm, role: r as any})} className={`flex-1 py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all border-2 ${registerForm.role === r ? 'border-blue-600 bg-blue-50 text-blue-600 shadow-lg shadow-blue-500/10' : 'border-slate-100 text-slate-400 hover:bg-slate-50'}`}>
-                        {r === 'admin' ? 'Regional Lead' : 'Field Helper'}
-                     </button>
-                   ))}
+      {/* STAFF ONBOARDING MODAL */}
+      {tab === 'staff' && creationStep === 'form' && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-xl" onClick={() => setCreationStep('select')}></div>
+           <div className="relative bg-white w-full max-w-md rounded-[3rem] shadow-2xl overflow-hidden p-12">
+              <h3 className="text-3xl font-black text-slate-900 tracking-tight text-center mb-8 uppercase">Onboard Agent</h3>
+              <form onSubmit={handleStaffRegister} className="space-y-6">
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Agent Name</label>
+                    <input required type="text" value={staffForm.name} onChange={e => setStaffForm({...staffForm, name: e.target.value})} className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" />
                  </div>
-               </div>
-               <button type="submit" className="w-full py-6 bg-slate-900 text-white rounded-[1.8rem] font-black text-sm uppercase tracking-widest shadow-2xl hover:bg-black transition-all">Publish Personnel Record</button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* FINANCE MODAL */}
-      {isCheckoutModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsCheckoutModalOpen(false)}></div>
-          <div className="relative bg-white w-full max-w-2xl rounded-[3.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
-            <div className="p-10 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-               <div>
-                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">Ledger Transmission</h3>
-                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Authorized Resource Commit</p>
-               </div>
-               <button onClick={() => setIsCheckoutModalOpen(false)} className="p-4 text-slate-400 hover:bg-slate-200 rounded-full transition-colors"><X size={28} /></button>
-            </div>
-            <div className="p-12 space-y-12">
-              <div className="flex bg-slate-100 p-2 rounded-[1.8rem] w-full shadow-inner">
-                <button onClick={() => setCheckoutType('Income')} className={`flex-1 py-4 px-6 rounded-[1.4rem] text-[10px] font-black uppercase tracking-widest transition-all ${checkoutType === 'Income' ? 'bg-white text-green-600 shadow-lg' : 'text-slate-500 hover:text-slate-700'}`}>Operational Intake</button>
-                <button onClick={() => setCheckoutType('Expense')} className={`flex-1 py-4 px-6 rounded-[1.4rem] text-[10px] font-black uppercase tracking-widest transition-all ${checkoutType === 'Expense' ? 'bg-white text-red-500 shadow-lg' : 'text-slate-500 hover:text-slate-700'}`}>Operational Burn</button>
-              </div>
-              <form onSubmit={handleFinancialSubmit} className="space-y-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <div className="space-y-3">
-                     <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Amount Identity ($)</label>
-                     <input required type="number" step="0.01" className="w-full px-7 py-6 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-4xl focus:ring-4 focus:ring-blue-500/10" placeholder="0.00" onChange={(e) => setFinancialForm({ ...financialForm, amount: e.target.value })} />
-                   </div>
-                   <div className="space-y-3">
-                     <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">{checkoutType === 'Income' ? 'Donor Entity' : 'Service Recipient'}</label>
-                     <input required type="text" className="w-full px-7 py-6 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xl" placeholder="Identity" onChange={(e) => setFinancialForm({ ...financialForm, name: e.target.value })} />
-                   </div>
-                </div>
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Strategic Mission Purpose</label>
-                  <input required type="text" className="w-full px-7 py-5 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-sm" placeholder="Purpose details..." onChange={(e) => setFinancialForm({ ...financialForm, description: e.target.value })} />
-                </div>
-                <button type="submit" className={`w-full py-6 ${checkoutType === 'Income' ? 'bg-green-600' : 'bg-slate-900'} text-white rounded-[2rem] font-black text-sm uppercase tracking-[0.25em] shadow-2xl transition-all active:scale-95`}>Commit Transaction to Cloud</button>
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Operational Email</label>
+                    <input required type="email" value={staffForm.email} onChange={e => setStaffForm({...staffForm, email: e.target.value})} className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" />
+                 </div>
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Access Level</label>
+                    <select value={staffForm.role} onChange={e => setStaffForm({...staffForm, role: e.target.value as any})} className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-black uppercase text-xs">
+                       <option value="helper">Field Agent (Helper)</option>
+                       <option value="admin">Coordinator (Admin)</option>
+                    </select>
+                 </div>
+                 <button type="submit" className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl">Authorize Access</button>
+                 <button type="button" onClick={() => setCreationStep('select')} className="w-full py-2 text-xs font-bold text-slate-400 uppercase">Cancel</button>
               </form>
-            </div>
-          </div>
+           </div>
         </div>
       )}
     </div>

@@ -1,19 +1,32 @@
 
 import React from 'react';
-import { Calendar, Clock, MapPin, Sparkles, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Calendar, Clock, MapPin, Sparkles, ArrowRight, Edit2, Trash2 } from 'lucide-react';
 import { useData } from '../context/MockDataContext';
 
 export const Events = () => {
-  const { events } = useData();
+  const { events, currentUser, deleteEvent } = useData();
+  const isAdmin = currentUser?.role === 'admin';
+  const isStaff = !!currentUser;
+
+  const handleDelete = (id: string, title: string) => {
+    if (!isAdmin) {
+      alert("Access Denied: Admin authorization required to purge event records.");
+      return;
+    }
+    if (confirm(`Delete Event: Permanently remove "${title}" from the public schedule?`)) {
+      deleteEvent(id);
+    }
+  };
 
   return (
     <div className="animate-in fade-in duration-700 bg-slate-50 min-h-screen">
       <section className="bg-slate-900 py-32 text-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/20 backdrop-blur-md border border-green-500/30 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-8">
-            <Sparkles size={12} className="text-green-400" /> Mission Gatherings & Briefings
+            <Sparkles size={12} className="text-green-400" /> Operational Publications
           </div>
-          <h1 className="text-5xl md:text-7xl font-black mb-8 tracking-tight leading-none">Field Events</h1>
+          <h1 className="text-5xl md:text-7xl font-black mb-8 tracking-tight leading-none">Mission Events</h1>
           <p className="text-xl text-slate-400 font-light max-w-2xl mx-auto leading-relaxed italic">
             "Direct engagement with our regional operations, community dialogues, and strategic fundraisers."
           </p>
@@ -23,7 +36,22 @@ export const Events = () => {
       <section className="max-w-6xl mx-auto px-6 py-24">
         <div className="grid grid-cols-1 gap-12">
           {events.length > 0 ? events.map((ev) => (
-            <div key={ev.id} className="bg-white rounded-[3rem] shadow-sm border border-slate-100 overflow-hidden group hover:shadow-2xl transition-all duration-500">
+            <div key={ev.id} className="bg-white rounded-[3rem] shadow-sm border border-slate-100 overflow-hidden group hover:shadow-2xl transition-all duration-500 relative">
+               {/* Staff Management Overlay */}
+               {isStaff && (
+                  <div className="absolute top-8 right-8 z-20 flex gap-2">
+                    <Link to="/dashboard" className="p-3 bg-white text-blue-600 rounded-full shadow-lg border border-slate-100 hover:bg-blue-600 hover:text-white transition-all">
+                       <Edit2 size={16} />
+                    </Link>
+                    <button 
+                      onClick={() => handleDelete(ev.id, ev.title)}
+                      className={`p-3 rounded-full shadow-lg border border-slate-100 transition-all ${isAdmin ? 'bg-white text-red-600 hover:bg-red-600 hover:text-white' : 'bg-slate-50 text-slate-300 cursor-not-allowed'}`}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                )}
+
                <div className="grid grid-cols-1 md:grid-cols-12">
                  <div className="md:col-span-4 bg-slate-900 text-white p-12 flex flex-col justify-center items-center text-center">
                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 mb-4">{ev.type}</span>
@@ -55,7 +83,7 @@ export const Events = () => {
                  <Calendar size={48} />
                </div>
                <h3 className="text-3xl font-black text-slate-900 tracking-tight">No Active Schedules</h3>
-               <p className="text-slate-500 font-medium max-w-sm mx-auto leading-relaxed">We are currently evaluating next phases of regional field gatherings. Check back for official dispatch.</p>
+               <p className="text-slate-500 font-medium max-w-sm mx-auto leading-relaxed">We are currently evaluating next phases of regional field gatherings.</p>
             </div>
           )}
         </div>
