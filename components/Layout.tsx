@@ -86,6 +86,11 @@ const Navbar = () => {
       ]
     },
     {
+      name: 'Impact',
+      path: '/impact',
+      dropdown: null
+    },
+    {
       name: 'Publication',
       path: '/projects',
       dropdown: [
@@ -325,8 +330,8 @@ const Footer = () => {
             <li><Link to="/" className="hover:text-white transition-colors">Home</Link></li>
             <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
             <li><Link to="/programs" className="hover:text-white transition-colors">Programs</Link></li>
+            <li><Link to="/impact" className="hover:text-white transition-colors">Impact</Link></li>
             <li><Link to="/news" className="hover:text-white transition-colors">Field Events</Link></li>
-            <li><Link to="/projects" className="hover:text-white transition-colors">Intelligence Hub</Link></li>
           </ul>
         </div>
 
