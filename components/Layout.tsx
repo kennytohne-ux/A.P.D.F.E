@@ -312,7 +312,7 @@ const Footer = () => {
         <div className="space-y-8">
           <div className="flex items-center gap-3">
              <div className="bg-white p-2 rounded-xl">
-               <img src="https://raw.githubusercontent.com/stackblitz/stackblitz-images/main/apdfe-logo.png" alt="Logo" className="h-10 w-auto" />
+               <img src="../logo.jpg" alt="Logo" className="h-10 w-auto" />
              </div>
              <span className="text-3xl font-black text-white tracking-tighter">A.P.D.F.E</span>
           </div>
