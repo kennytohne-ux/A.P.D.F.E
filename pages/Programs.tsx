@@ -29,7 +29,7 @@ export const Programs = () => {
           </div>
           <div className="flex gap-4">
             <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl flex-grow">
-               <div className="text-3xl font-black text-blue-600 mb-1">9</div>
+               <div className="text-3xl font-black text-blue-600 mb-1">6</div>
                <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Active Sectors</div>
             </div>
             <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl flex-grow">
