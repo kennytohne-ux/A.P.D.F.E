@@ -37,7 +37,7 @@ export const About = () => {
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
           <div className="flex flex-col items-center mb-10">
             <div className="bg-white p-4 rounded-[2.5rem] shadow-2xl mb-8">
-              <img src="https://raw.githubusercontent.com/stackblitz/stackblitz-images/main/apdfe-logo.png" alt="A.P.D.F.E Logo" className="h-20 w-auto" />
+              <img src="/logo.jpg" alt="A.P.D.F.E Logo" className="h-20 w-auto" />
             </div>
             <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-none mb-4">A.P.D.F.E</h1>
             <p className="text-lg md:text-xl text-green-400 font-black tracking-[0.3em] uppercase mb-12">Building Better Futures Together</p>
