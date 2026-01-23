@@ -161,7 +161,7 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center py-4">
           <Link to="/" className="flex items-center gap-3">
             <img 
-              src="https://raw.githubusercontent.com/stackblitz/stackblitz-images/main/apdfe-logo.png" 
+              src="https:../logo.jpg" 
               alt="A.P.D.F.E Logo" 
               className="h-10 w-auto" 
               onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/40x40?text=AP'; }} 
